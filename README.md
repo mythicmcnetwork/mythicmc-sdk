@@ -81,7 +81,7 @@ For concurrent Python requests, see [async lookup](python/examples/async_lookup.
 - **Delayed snapshots.** Gameplay data is at least five minutes old. `meta.dataAsOf` / `meta.data_as_of` identifies the response cutoff.
 - **Unknown values.** Null values and missing statistic groups mean unknown, not zero.
 - **Timestamps.** Numeric timestamps use Unix milliseconds.
-- **Leaderboards.** Values are formatted strings, such as `3d 4h` or `$2.83B`. Check `stale` and the period bounds before treating a board as current.
+- **Leaderboards.** `value` is a numeric string, such as `"2183269850.41"` for net worth. Playtime values are in minutes; kills and wins are counts. Apply display formatting in your app. Check `stale`; daily, weekly, and monthly boards also include `windowStart` and `windowEnd`, while `all_time` boards do not.
 - **Rate limits.** Limits apply per key, per minute; cache hits count. Both clients retry `429` twice by default, respecting `Retry-After`. Waits over 60 seconds raise a rate-limit error.
 - **Errors.** `404` means an unknown resource or missing player data. `503` can mean unavailable data, an ambiguous username, or a server failure. See each SDK's error reference.
 
