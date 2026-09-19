@@ -4,8 +4,8 @@ import asyncio
 import re
 import time
 from datetime import datetime
-from typing import Any, TypeVar
-from urllib.parse import quote
+from typing import Any, TypeVar, overload
+from urllib.parse import quote, urlencode
 
 import httpx
 
@@ -19,7 +19,7 @@ from .errors import (
     UnavailableError,
 )
 
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 DEFAULT_BASE_URL = "https://api.mythicmc.net"
 
 T = TypeVar("T")
@@ -48,6 +48,7 @@ def _instant(value: str | None) -> datetime | None:
 def _meta(headers: httpx.Headers) -> models.ResponseMeta:
     cache = headers.get("x-cache")
     return models.ResponseMeta(
+        etag=headers.get("etag"),
         data_delay_seconds=_integer(headers.get("x-data-delay-seconds")),
         data_as_of=_instant(headers.get("x-data-as-of")),
         cache=cache if cache in ("HIT", "MISS", "COALESCED") else None,
@@ -137,10 +138,18 @@ class MythicMC(_Base):
     def __exit__(self, *exc: object) -> None:
         self.close()
 
-    def _get(self, model: type[T], path: str) -> T:
+    @overload
+    def _get(self, model: type[T], path: str) -> T: ...
+
+    @overload
+    def _get(self, model: type[T], path: str, if_none_match: str | None) -> T | None: ...
+
+    def _get(self, model: type[T], path: str, if_none_match: str | None = None) -> T | None:
         attempt = 0
         while True:
-            response = self._http.get(path)
+            response = self._http.get(path, headers={"If-None-Match": if_none_match} if if_none_match is not None else {})
+            if response.status_code == 304 and if_none_match is not None:
+                return None
             delay = self._retry_delay(response, attempt)
             if delay is None:
                 return self._reply(model, response)
@@ -171,6 +180,39 @@ class MythicMC(_Base):
         """Networth supports all_time only."""
         return self._get(models.Leaderboard, self._board(type, period))
 
+    def get_survival_shop(self, if_none_match: str | None = None) -> models.SurvivalShop | None:
+        return self._get(models.SurvivalShop, f"/v1/survival/shop", if_none_match)
+
+    def get_player_shop_bundles(self, id: str) -> models.PlayerShopBundles:
+        return self._get(models.PlayerShopBundles, f"/v1/players/{quote(id, safe='')}/shop-bundles")
+
+    def list_bounty_claims(self, *, limit: int | None = None, cursor: str | None = None) -> models.BountyClaimPage:
+        return self._get(models.BountyClaimPage, f"/v1/survival/bounty-claims" + _page_query(limit, cursor))
+
+    def get_bounty_claim(self, claim_id: str) -> models.BountyClaim:
+        return self._get(models.BountyClaim, f"/v1/survival/bounty-claims/{quote(claim_id, safe='')}")
+
+    def get_event_details(self, event_id: str) -> models.EventDetails:
+        return self._get(models.EventDetails, f"/v1/survival/events/{quote(event_id, safe='')}/details")
+
+    def list_event_schedules(self, *, limit: int | None = None, cursor: str | None = None) -> models.EventSchedulePage:
+        return self._get(models.EventSchedulePage, f"/v1/survival/event-schedules" + _page_query(limit, cursor))
+
+    def get_event_schedule(self, schedule_id: str) -> models.EventSchedule:
+        return self._get(models.EventSchedule, f"/v1/survival/event-schedules/{quote(schedule_id, safe='')}")
+
+    def list_stalls(self, *, limit: int | None = None, cursor: str | None = None) -> models.StallPage:
+        return self._get(models.StallPage, f"/v1/survival/stalls" + _page_query(limit, cursor))
+
+    def get_stall(self, stall_id: str) -> models.Stall:
+        return self._get(models.Stall, f"/v1/survival/stalls/{quote(stall_id, safe='')}")
+
+    def list_bounties(self, *, limit: int | None = None, cursor: str | None = None) -> models.BountyPage:
+        return self._get(models.BountyPage, f"/v1/survival/bounties" + _page_query(limit, cursor))
+
+    def get_bounty(self, id: str) -> models.Bounty:
+        return self._get(models.Bounty, f"/v1/survival/bounties/{quote(id, safe='')}")
+
     def health(self) -> models.Health:
         """API process health, not game server status."""
         return self._get(models.Health, "/health")
@@ -200,10 +242,18 @@ class AsyncMythicMC(_Base):
     async def __aexit__(self, *exc: object) -> None:
         await self.close()
 
-    async def _get(self, model: type[T], path: str) -> T:
+    @overload
+    async def _get(self, model: type[T], path: str) -> T: ...
+
+    @overload
+    async def _get(self, model: type[T], path: str, if_none_match: str | None) -> T | None: ...
+
+    async def _get(self, model: type[T], path: str, if_none_match: str | None = None) -> T | None:
         attempt = 0
         while True:
-            response = await self._http.get(path)
+            response = await self._http.get(path, headers={"If-None-Match": if_none_match} if if_none_match is not None else {})
+            if response.status_code == 304 and if_none_match is not None:
+                return None
             delay = self._retry_delay(response, attempt)
             if delay is None:
                 return self._reply(model, response)
@@ -234,6 +284,44 @@ class AsyncMythicMC(_Base):
         """Networth supports all_time only."""
         return await self._get(models.Leaderboard, self._board(type, period))
 
+    async def get_survival_shop(self, if_none_match: str | None = None) -> models.SurvivalShop | None:
+        return await self._get(models.SurvivalShop, f"/v1/survival/shop", if_none_match)
+
+    async def get_player_shop_bundles(self, id: str) -> models.PlayerShopBundles:
+        return await self._get(models.PlayerShopBundles, f"/v1/players/{quote(id, safe='')}/shop-bundles")
+
+    async def list_bounty_claims(self, *, limit: int | None = None, cursor: str | None = None) -> models.BountyClaimPage:
+        return await self._get(models.BountyClaimPage, f"/v1/survival/bounty-claims" + _page_query(limit, cursor))
+
+    async def get_bounty_claim(self, claim_id: str) -> models.BountyClaim:
+        return await self._get(models.BountyClaim, f"/v1/survival/bounty-claims/{quote(claim_id, safe='')}")
+
+    async def get_event_details(self, event_id: str) -> models.EventDetails:
+        return await self._get(models.EventDetails, f"/v1/survival/events/{quote(event_id, safe='')}/details")
+
+    async def list_event_schedules(self, *, limit: int | None = None, cursor: str | None = None) -> models.EventSchedulePage:
+        return await self._get(models.EventSchedulePage, f"/v1/survival/event-schedules" + _page_query(limit, cursor))
+
+    async def get_event_schedule(self, schedule_id: str) -> models.EventSchedule:
+        return await self._get(models.EventSchedule, f"/v1/survival/event-schedules/{quote(schedule_id, safe='')}")
+
+    async def list_stalls(self, *, limit: int | None = None, cursor: str | None = None) -> models.StallPage:
+        return await self._get(models.StallPage, f"/v1/survival/stalls" + _page_query(limit, cursor))
+
+    async def get_stall(self, stall_id: str) -> models.Stall:
+        return await self._get(models.Stall, f"/v1/survival/stalls/{quote(stall_id, safe='')}")
+
+    async def list_bounties(self, *, limit: int | None = None, cursor: str | None = None) -> models.BountyPage:
+        return await self._get(models.BountyPage, f"/v1/survival/bounties" + _page_query(limit, cursor))
+
+    async def get_bounty(self, id: str) -> models.Bounty:
+        return await self._get(models.Bounty, f"/v1/survival/bounties/{quote(id, safe='')}")
+
     async def health(self) -> models.Health:
         """API process health, not game server status."""
         return await self._get(models.Health, "/health")
+
+
+def _page_query(limit: int | None, cursor: str | None) -> str:
+    params = {key: value for key, value in {"limit": limit, "cursor": cursor}.items() if value is not None}
+    return "?" + urlencode(params) if params else ""

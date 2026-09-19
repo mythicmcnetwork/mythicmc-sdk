@@ -27,7 +27,7 @@ PROFILE = {
     "location": {"gamemode": "survival"},
     "level": 37,
     "team": {"id": "6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c", "name": "Nightfall", "prefix": "NF", "level": 12},
-    "cosmetics": {"selected": [{"slot": "hat", "id": "witch-hat", "name": "Witch Hat", "category": "hats", "preview": None}]},
+    "cosmetics": {"selected": [{"slot": "hat", "id": "witch-hat", "name": "Witch Hat", "category": "hats"}]},
     "addedLater": "ignored",
 }
 DATA_HEADERS = {
@@ -72,7 +72,7 @@ class Decoding(unittest.TestCase):
         self.assertEqual(player.location.gamemode, "survival")
         self.assertIsNone(player.team.role)
         self.assertEqual(player.cosmetics.selected[0].id, "witch-hat")
-        self.assertIsNone(player.cosmetics.selected[0].preview)
+        self.assertFalse(hasattr(player.cosmetics.selected[0], "preview"))
         self.assertIsNone(player.skin)
         self.assertEqual(player.raw["addedLater"], "ignored")
         self.assertEqual(player.meta.data_delay_seconds, 300)
@@ -92,8 +92,6 @@ class Decoding(unittest.TestCase):
             "name": "Vicente_1313",
             "survival": {
                 "combat": {"kills": 318, "deaths": 97, "mobKills": 12044, "damageDealt": 88412.5, "damageTaken": 40210},
-                "world": {"blocksMined": 1, "blocksPlaced": 2, "itemsCrafted": 3, "distanceKm": 4.5, "jumps": 6,
-                          "fishCaught": 7, "animalsBred": 8, "villagerTrades": 9, "itemsEnchanted": 10, "raidsWon": 11},
                 "events": {"points": 1, "pointsLifetime": 2, "tickets": 3, "ticketsEarned": 4, "raffleLuck": 1.25,
                            "rafflesEntered": 5, "bingoFinished": 6, "bingoPodiums": 7,
                            "wins": {"bingo": 1, "raffle": 2, "chatGame": 19}},
@@ -103,7 +101,7 @@ class Decoding(unittest.TestCase):
         with api:
             survival = api.get_player_stats("Vicente_1313").survival
         self.assertEqual(survival.combat.mob_kills, 12044)
-        self.assertEqual(survival.world.distance_km, 4.5)
+        self.assertFalse(hasattr(survival, "world"))
         self.assertEqual(survival.events.wins.chat_game, 19)
         self.assertIsNone(survival.net_worth)
         self.assertIsNone(survival.money)

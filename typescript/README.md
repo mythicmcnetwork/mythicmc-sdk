@@ -109,3 +109,23 @@ npm run typecheck && npm test && npm run build
 ```
 
 `npm run typecheck` covers `src`, `test` and `examples`.
+
+## API 1.1.0
+
+See [release notes](../RELEASE_NOTES.md) for breaking changes and migration instructions.
+
+| Resource | TypeScript | Python (sync and async) |
+| --- | --- | --- |
+| SurvivalShop | `getSurvivalShop` | `get_survival_shop` |
+| PlayerShopBundles | `getPlayerShopBundles` | `get_player_shop_bundles` |
+| BountyClaimPage | `listBountyClaims` | `list_bounty_claims` |
+| BountyClaim | `getBountyClaim` | `get_bounty_claim` |
+| EventDetails | `getEventDetails` | `get_event_details` |
+| EventSchedulePage | `listEventSchedules` | `list_event_schedules` |
+| EventSchedule | `getEventSchedule` | `get_event_schedule` |
+| StallPage | `listStalls` | `list_stalls` |
+| Stall | `getStall` | `get_stall` |
+| BountyPage | `listBounties` | `list_bounties` |
+| Bounty | `getBounty` | `get_bounty` |
+
+List methods take pagination options (`{ limit, cursor }` in TypeScript; keyword arguments in Python). Follow `nextCursor` / `next_cursor` until null. IDs are URL-encoded. Shop reads optionally accept an ETag and return null / None on 304; otherwise use `reply.meta.etag` for the next conditional request.

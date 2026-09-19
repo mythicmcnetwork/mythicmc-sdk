@@ -15,7 +15,6 @@ except NotFoundError as error:
 
 combat = survival.combat
 print(f"kills {combat.kills}, deaths {combat.deaths}, K/D {combat.kills / max(combat.deaths, 1):.2f}")
-print("blocks mined:", survival.world.blocks_mined)
 
 # Missing groups are unknown, not zero.
 net_worth = survival.net_worth

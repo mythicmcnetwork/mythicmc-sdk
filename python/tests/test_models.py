@@ -19,7 +19,7 @@ PROFILE = {
     "team": {"id": "6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c", "name": "Nightfall", "prefix": "NF",
              "level": 12, "role": "officer"},
     "cosmetics": {"selected": [{"slot": "hat", "id": "witch-hat", "name": "Witch Hat",
-                                "category": "hats", "preview": "https://example.invalid/hat.png"}]},
+                                "category": "hats"}]},
     "skin": {"textureUrl": "https://textures.minecraft.net/texture/2c7a608fb2917a75164dc04dfbc7d4fe0d1e5b05b929381df20bb26853cb60f2", "model": "classic"},
 }
 
@@ -33,9 +33,6 @@ STATS = {
         "spawners": 3,
         "ranks": {"kills": 14, "playtime": 52},
         "combat": {"kills": 318, "deaths": 97, "mobKills": 12044, "damageDealt": 88412.5, "damageTaken": 40210},
-        "world": {"blocksMined": 402118, "blocksPlaced": 188305, "itemsCrafted": 22190, "distanceKm": 1840.2,
-                  "jumps": 96012, "fishCaught": 410, "animalsBred": 233, "villagerTrades": 1502,
-                  "itemsEnchanted": 188, "raidsWon": 4},
         "events": {"points": 120, "pointsLifetime": 2210, "tickets": 3, "ticketsEarned": 41, "raffleLuck": 1.25,
                    "rafflesEntered": 18, "bingoFinished": 6, "bingoPodiums": 2,
                    "wins": {"bingo": 1, "raffle": 2, "chatGame": 19}},

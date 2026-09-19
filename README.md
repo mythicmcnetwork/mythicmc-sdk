@@ -74,7 +74,7 @@ Both clients handle authentication, response metadata, typed errors, and rate-li
 | Crate keys | [Example](typescript/examples/get-player-crate-keys.ts) | [Example](python/examples/get_player_crate_keys.py) |
 | Leaderboards | [Example](typescript/examples/get-leaderboards.ts) | [Example](python/examples/get_leaderboards.py) |
 
-For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers the SDK endpoints. The [full API reference](https://developer.mythicmc.net/#reference) also documents player directories, history, network status, catalogs, and Survival market data, which can be called directly over HTTP.
+For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers the SDK endpoints. The [full API reference](https://developer.mythicmc.net/#reference) also documents additional player directories, history, network status, and catalogs that can be called directly over HTTP.
 
 ## Working with the data
 
@@ -92,3 +92,23 @@ For concurrent Python requests, see [async lookup](python/examples/async_lookup.
 ## License & API terms
 
 The SDK code is [MIT licensed](LICENSE). Access to the API and use of its data are governed separately by the [MythicMC Terms of Service](https://mythicmc.net/terms), including restrictions on model training, sale, publication, and redistribution of API data.
+
+## API 1.1.0
+
+See [release notes](RELEASE_NOTES.md) for breaking changes and migration instructions.
+
+| Resource | TypeScript | Python (sync and async) |
+| --- | --- | --- |
+| SurvivalShop | `getSurvivalShop` | `get_survival_shop` |
+| PlayerShopBundles | `getPlayerShopBundles` | `get_player_shop_bundles` |
+| BountyClaimPage | `listBountyClaims` | `list_bounty_claims` |
+| BountyClaim | `getBountyClaim` | `get_bounty_claim` |
+| EventDetails | `getEventDetails` | `get_event_details` |
+| EventSchedulePage | `listEventSchedules` | `list_event_schedules` |
+| EventSchedule | `getEventSchedule` | `get_event_schedule` |
+| StallPage | `listStalls` | `list_stalls` |
+| Stall | `getStall` | `get_stall` |
+| BountyPage | `listBounties` | `list_bounties` |
+| Bounty | `getBounty` | `get_bounty` |
+
+List methods take pagination options (`{ limit, cursor }` in TypeScript; keyword arguments in Python). Follow `nextCursor` / `next_cursor` until null. IDs are URL-encoded. Shop reads optionally accept an ETag and return null / None on 304; otherwise use `reply.meta.etag` for the next conditional request.

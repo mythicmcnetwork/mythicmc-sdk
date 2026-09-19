@@ -1,5 +1,7 @@
 /** Response metadata; fields are null on `/health`. */
 export interface ResponseMeta {
+  /** Catalog revision validator, when supplied. */
+  etag: string | null
   dataDelaySeconds: number | null
   /** UTC cutoff, preserved on cached responses. */
   dataAsOf: Date | null
@@ -35,7 +37,6 @@ export interface SelectedCosmetic {
   id: string
   name: string
   category: string
-  preview: string | null
 }
 
 export interface Skin {
@@ -63,7 +64,7 @@ export interface PlayerProfile {
   skin?: Skin
 }
 
-/** Only combat and world are required; unpublished groups are omitted. */
+/** Only combat is required; unpublished groups are omitted. */
 export interface SurvivalStats {
   level?: number
   money?: number
@@ -72,18 +73,6 @@ export interface SurvivalStats {
   ranks?: { kills: number; playtime: number }
   /** Damage in health points. */
   combat: { kills: number; deaths: number; mobKills: number; damageDealt: number; damageTaken: number }
-  world: {
-    blocksMined: number
-    blocksPlaced: number
-    itemsCrafted: number
-    distanceKm: number
-    jumps: number
-    fishCaught: number
-    animalsBred: number
-    villagerTrades: number
-    itemsEnchanted: number
-    raidsWon: number
-  }
   events?: {
     points: number
     pointsLifetime: number
@@ -137,6 +126,7 @@ export interface PlayerTeam {
 
 export interface CrateKey {
   crateId: string
+  /** @deprecated All keys are virtual; retained for compatibility. */
   keyType: string
   /** Null when unpublished. */
   available: number | null
@@ -183,3 +173,222 @@ export interface Leaderboard {
 export interface Health {
   ok: boolean
 }
+
+
+export interface SurvivalShopCategoriesItem {
+  id: string
+  nameKey: string
+  icon: string
+  color: string
+  endsAt: string | null
+  items: (string)[]
+}
+
+export interface SurvivalShopItemsItem {
+  material: string
+  buyPrice: number | null
+  sellPrice: number | null
+}
+
+export interface SurvivalShopSpawnersItem {
+  id: string
+  entity: string
+  icon: string
+  buyPrice: number
+}
+
+export interface SurvivalShop {
+  schemaVersion: 1
+  revision: string
+  currency: "money"
+  pricesIncludePlayerTax: false
+  cacheMaxAgeSeconds: number
+  validUntil: string | null
+  categories: (SurvivalShopCategoriesItem)[]
+  items: (SurvivalShopItemsItem)[]
+  spawners: (SurvivalShopSpawnersItem)[]
+}
+
+export interface PlayerShopBundlesBundlesItemProductsItemVariant1 {
+  material: string
+  quantity: number
+  unitPrice: number | null
+  available: boolean
+}
+
+export interface PlayerShopBundlesBundlesItem {
+  name: string
+  icon: string
+  products: (PlayerShopBundlesBundlesItemProductsItemVariant1 | null)[]
+  available: boolean
+  totalPrice: number | null
+}
+
+export interface PlayerShopBundles {
+  uuid: string
+  currency: "money"
+  pricesIncludePlayerTax: false
+  catalogRevision: string
+  bundles: (PlayerShopBundlesBundlesItem)[]
+  name: string
+}
+
+export interface BountyClaim {
+  id: string
+  uuid: string
+  name: string
+  killerUuid: string
+  killerName: string
+  amount: number
+  currency: string
+  openedAt: string
+  claimedAt: string
+  contributorCount: number | null
+}
+
+export interface BingoPointRewards {
+  perSquare: number
+  perLine: number
+  maxLines: number
+  fullHouse: number
+  daily: number
+  podium: (number)[]
+}
+
+export interface ItemEnchantment {
+  id: string
+  level: number
+}
+
+export interface ItemAttribute {
+  id: string
+  value: number
+}
+
+export interface ItemPrize {
+  material: string
+  name: string
+  rarity: string | null
+  enchantments: (ItemEnchantment)[]
+  attributes: (ItemAttribute)[]
+  quantity: number
+}
+
+export interface SpawnerPrize {
+  spawner: string
+  quantity: number
+}
+
+export interface BingoPrize {
+  rank: number
+  money: number
+  items: (ItemPrize | SpawnerPrize)[]
+}
+
+export interface BingoDetails {
+  id: string
+  mode: string
+  maxMinutes: number
+  freeSpace: boolean
+  pointRewards: BingoPointRewards
+  prizes: (BingoPrize)[]
+}
+
+export interface RaffleDetails {
+  id: string
+  entryCurrency: string
+  entryCost: number
+  maxTicketsPerPlayer: number
+  basePrize: number
+  bonusPerTicket: number
+  prizeCurrency: string
+}
+
+export type EventDetails = BingoDetails | RaffleDetails
+
+export interface EventScheduleEventsItem {
+  id: string
+  type: "carnival"
+  startsAt: string
+  endsAt: string
+  summer: boolean
+  rescheduled: boolean
+}
+
+export interface EventSchedule {
+  timezone: string
+  enabled: boolean
+  suspended: boolean
+  activeEventId: string | null
+  bingoStartDay: number
+  bingoDays: number
+  events: (EventScheduleEventsItem)[]
+}
+
+export interface StallOffersItemItemEnchantmentsItem {
+  id: string
+  level: number
+}
+
+export interface StallOffersItemItemAttributesItem {
+  id: string
+  value: number
+}
+
+export interface StallOffersItemItem {
+  material: string
+  name: string
+  rarity: string | null
+  enchantments: (StallOffersItemItemEnchantmentsItem)[]
+  attributes: (StallOffersItemItemAttributesItem)[]
+}
+
+export interface StallOffersItem {
+  offerId: string
+  item: StallOffersItemItem
+  unitPrice: number
+  currency: string
+  stock: number
+}
+
+export interface Stall {
+  stallId: string
+  owner: string
+  ownerName: string
+  name: string
+  icon: string
+  leaseEndsAt: string | null
+  offers: (StallOffersItem)[]
+}
+
+export interface Bounty {
+  uuid: string
+  name: string
+  amount: number
+  currency: string
+  rank: number
+  openedAt?: string
+  contributorCount?: number | null
+}
+
+export interface BountyClaimPage {
+  rows: (BountyClaim)[]
+  nextCursor: string | null
+}
+
+export interface EventSchedulePage {
+  rows: (EventSchedule)[]
+  nextCursor: string | null
+}
+
+export interface StallPage {
+  rows: (Stall)[]
+  nextCursor: string | null
+}
+
+export interface BountyPage {
+  rows: (Bounty)[]
+  nextCursor: string | null
+}
+
+export interface PageOptions { limit?: number; cursor?: string }

@@ -8,7 +8,6 @@ try {
 
   const { kills, deaths } = survival.combat
   console.log(`kills ${kills}, deaths ${deaths}, K/D ${(kills / Math.max(deaths, 1)).toFixed(2)}`)
-  console.log('blocks mined:', survival.world.blocksMined)
 
   // Missing groups are unknown, not zero.
   console.log('net worth:', survival.netWorth ? `$${survival.netWorth.total} (#${survival.netWorth.rank})` : 'unknown')

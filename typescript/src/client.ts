@@ -1,5 +1,6 @@
 import { AuthenticationError, BadRequestError, MythicMCError, NotFoundError, RateLimitError, UnavailableError } from './errors.ts'
 import type {
+  Bounty, BountyClaim, BountyClaimPage, BountyPage, EventDetails, EventSchedule, EventSchedulePage, PlayerShopBundles, Stall, StallPage, SurvivalShop, PageOptions,
   Health,
   Leaderboard,
   LeaderboardIndex,
@@ -14,7 +15,7 @@ import type {
   ResponseMeta,
 } from './types.ts'
 
-export const VERSION = '0.1.0'
+export const VERSION = '1.1.0'
 export const DEFAULT_BASE_URL = 'https://api.mythicmc.net'
 
 const MAX_RETRY_WAIT_SECONDS = 60
@@ -83,17 +84,64 @@ export class MythicMC {
     return this.#get(`/v1/leaderboards/${encodeURIComponent(type)}/${encodeURIComponent(period)}`)
   }
 
+  getSurvivalShop(ifNoneMatch?: string): Promise<Reply<SurvivalShop> | null> {
+    return this.#get(`/v1/survival/shop`, ifNoneMatch)
+  }
+
+  getPlayerShopBundles(id: string): Promise<Reply<PlayerShopBundles>> {
+    return this.#get(`/v1/players/${encodeURIComponent(id)}/shop-bundles`)
+  }
+
+  listBountyClaims(options: PageOptions = {}): Promise<Reply<BountyClaimPage>> {
+    return this.#get(`/v1/survival/bounty-claims` + pageQuery(options))
+  }
+
+  getBountyClaim(claimId: string): Promise<Reply<BountyClaim>> {
+    return this.#get(`/v1/survival/bounty-claims/${encodeURIComponent(claimId)}`)
+  }
+
+  getEventDetails(eventId: string): Promise<Reply<EventDetails>> {
+    return this.#get(`/v1/survival/events/${encodeURIComponent(eventId)}/details`)
+  }
+
+  listEventSchedules(options: PageOptions = {}): Promise<Reply<EventSchedulePage>> {
+    return this.#get(`/v1/survival/event-schedules` + pageQuery(options))
+  }
+
+  getEventSchedule(scheduleId: string): Promise<Reply<EventSchedule>> {
+    return this.#get(`/v1/survival/event-schedules/${encodeURIComponent(scheduleId)}`)
+  }
+
+  listStalls(options: PageOptions = {}): Promise<Reply<StallPage>> {
+    return this.#get(`/v1/survival/stalls` + pageQuery(options))
+  }
+
+  getStall(stallId: string): Promise<Reply<Stall>> {
+    return this.#get(`/v1/survival/stalls/${encodeURIComponent(stallId)}`)
+  }
+
+  listBounties(options: PageOptions = {}): Promise<Reply<BountyPage>> {
+    return this.#get(`/v1/survival/bounties` + pageQuery(options))
+  }
+
+  getBounty(id: string): Promise<Reply<Bounty>> {
+    return this.#get(`/v1/survival/bounties/${encodeURIComponent(id)}`)
+  }
+
   /** API process health, not game server status. */
   health(): Promise<Reply<Health>> {
     return this.#get('/health')
   }
 
-  async #get<T>(path: string): Promise<Reply<T>> {
+  #get<T>(path: string): Promise<Reply<T>>
+  #get<T>(path: string, ifNoneMatch: string | undefined): Promise<Reply<T> | null>
+  async #get<T>(path: string, ifNoneMatch?: string): Promise<Reply<T> | null> {
     for (let attempt = 0; ; attempt++) {
       const response = await this.#fetch(this.#baseUrl + path, {
-        headers: this.#headers,
+        headers: ifNoneMatch === undefined ? this.#headers : { ...this.#headers, 'If-None-Match': ifNoneMatch },
         signal: AbortSignal.timeout(this.#timeoutMs),
       })
+      if (response.status === 304 && ifNoneMatch !== undefined) return null
       if (response.ok) return parse<T>(response)
       // Release the connection before waiting to retry.
       const message = await errorMessage(response)
@@ -127,6 +175,7 @@ function meta(headers: Headers): ResponseMeta {
   const asOf = Date.parse(headers.get('x-data-as-of') ?? '')
   const cache = headers.get('x-cache')
   return {
+    etag: headers.get('etag'),
     dataDelaySeconds: integer(headers.get('x-data-delay-seconds')),
     dataAsOf: Number.isNaN(asOf) ? null : new Date(asOf),
     cache: cache === 'HIT' || cache === 'MISS' || cache === 'COALESCED' ? cache : null,
@@ -148,4 +197,11 @@ function toError(status: number, message: string): MythicMCError {
   if (status === 404) return new NotFoundError(status, message)
   if (status === 503) return new UnavailableError(status, message)
   return new MythicMCError(status, message)
+}
+
+function pageQuery(options: PageOptions): string {
+  const query = new URLSearchParams()
+  if (options.limit !== undefined) query.set('limit', String(options.limit))
+  if (options.cursor !== undefined) query.set('cursor', options.cursor)
+  return query.size ? `?${query}` : ''
 }

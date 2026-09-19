@@ -45,6 +45,7 @@ test('sends the key as a bearer token and parses response metadata', async () =>
   assert.match(calls[0]?.headers['User-Agent'] ?? '', /^mythicmc-api-ts\/\d+\.\d+\.\d+$/)
   assert.equal(player.name, 'Vicente_1313')
   assert.deepEqual(player.meta, {
+    etag: null,
     dataDelaySeconds: 300,
     dataAsOf: new Date('2026-09-19T12:00:00.000Z'),
     cache: 'HIT',
@@ -57,7 +58,7 @@ test('sends the key as a bearer token and parses response metadata', async () =>
 test('leaves meta null when the headers are absent or unusable', async () => {
   const { fetch } = stub(json({ ok: true }, 200, { 'X-Cache': 'BYPASS', 'X-Data-As-Of': 'shortly' }))
   const reply = await new MythicMC({ apiKey: 'k', fetch }).health()
-  assert.deepEqual(reply.meta, { dataDelaySeconds: null, dataAsOf: null, cache: null, rateLimitPerMinute: null })
+  assert.deepEqual(reply.meta, { etag: null, dataDelaySeconds: null, dataAsOf: null, cache: null, rateLimitPerMinute: null })
 })
 
 test('builds every route and encodes path segments', async () => {
@@ -177,4 +178,31 @@ test('aborts an attempt that outlives timeoutMs', async () => {
 
 test('requires an API key', () => {
   assert.throws(() => new MythicMC({ apiKey: '' }), TypeError)
+})
+
+test('API 1.1.0 routes encode identifiers and pagination cursors', async () => {
+  const { calls, fetch } = stub(...Array.from({ length: 11 }, () => json({})))
+  const api = new MythicMC({ apiKey: 'k', fetch })
+  await api.getSurvivalShop()
+  await api.getPlayerShopBundles('a/b')
+  await api.listBountyClaims({ limit: 2, cursor: 'a+/=' })
+  await api.getBountyClaim('a/b')
+  await api.getEventDetails('a/b')
+  await api.listEventSchedules({ limit: 2, cursor: 'a+/=' })
+  await api.getEventSchedule('a/b')
+  await api.listStalls({ limit: 2, cursor: 'a+/=' })
+  await api.getStall('a/b')
+  await api.listBounties({ limit: 2, cursor: 'a+/=' })
+  await api.getBounty('a/b')
+  assert.deepEqual(calls.map(call => call.url), ["https://api.mythicmc.net/v1/survival/shop", "https://api.mythicmc.net/v1/players/a%2Fb/shop-bundles", "https://api.mythicmc.net/v1/survival/bounty-claims?limit=2&cursor=a%2B%2F%3D", "https://api.mythicmc.net/v1/survival/bounty-claims/a%2Fb", "https://api.mythicmc.net/v1/survival/events/a%2Fb/details", "https://api.mythicmc.net/v1/survival/event-schedules?limit=2&cursor=a%2B%2F%3D", "https://api.mythicmc.net/v1/survival/event-schedules/a%2Fb", "https://api.mythicmc.net/v1/survival/stalls?limit=2&cursor=a%2B%2F%3D", "https://api.mythicmc.net/v1/survival/stalls/a%2Fb", "https://api.mythicmc.net/v1/survival/bounties?limit=2&cursor=a%2B%2F%3D", "https://api.mythicmc.net/v1/survival/bounties/a%2Fb"])
+})
+
+test('conditional shop reads expose ETags and handle bodyless 304 responses', async () => {
+  const { calls, fetch } = stub(json({ revision: 'abc', items: [{ buyPrice: null }] }, 200, { ETag: '"abc"' }), new Response(null, { status: 304 }))
+  const api = new MythicMC({ apiKey: 'k', fetch })
+  const shop = await api.getSurvivalShop()
+  assert.equal(shop?.meta.etag, '"abc"')
+  assert.equal(shop?.items[0]?.buyPrice, null)
+  assert.equal(await api.getSurvivalShop(shop!.meta.etag!), null)
+  assert.equal(calls[1]?.headers['If-None-Match'], '"abc"')
 })

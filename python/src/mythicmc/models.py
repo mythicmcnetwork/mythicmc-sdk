@@ -28,6 +28,7 @@ class ResponseMeta:
     cache: Literal["HIT", "MISS", "COALESCED"] | None
     rate_limit_per_minute: int | None
     """Cache hits count toward this allowance."""
+    etag: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,7 +55,6 @@ class SelectedCosmetic:
     id: str
     name: str
     category: str
-    preview: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,20 +123,6 @@ class CombatStats:
 
 
 @dataclass(frozen=True, slots=True)
-class WorldStats:
-    blocks_mined: int
-    blocks_placed: int
-    items_crafted: int
-    distance_km: float
-    jumps: int
-    fish_caught: int
-    animals_bred: int
-    villager_trades: int
-    items_enchanted: int
-    raids_won: int
-
-
-@dataclass(frozen=True, slots=True)
 class EventWins:
     bingo: int
     raffle: int
@@ -183,10 +169,9 @@ class NetWorth:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SurvivalStats:
-    """Only combat and world are required; unpublished groups are None."""
+    """Only combat is required; unpublished groups are None."""
 
     combat: CombatStats
-    world: WorldStats
     level: int | None = None
     """Minecraft experience level."""
     money: float | None = None
@@ -245,6 +230,7 @@ class PlayerTeam(_Reply):
 class CrateKey:
     crate_id: str
     key_type: str
+    """Deprecated: all keys are virtual; retained for compatibility."""
     available: int | None
     """0 means empty; None means unknown."""
 
@@ -296,6 +282,224 @@ class Health(_Reply):
     ok: bool
 
 
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SurvivalShopCategoriesItem:
+    id: str
+    name_key: str
+    icon: str
+    color: str
+    ends_at: str | None
+    items: list[str]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SurvivalShopItemsItem:
+    material: str
+    buy_price: float | None
+    sell_price: float | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SurvivalShopSpawnersItem:
+    id: str
+    entity: str
+    icon: str
+    buy_price: float
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SurvivalShop(_Reply):
+    schema_version: Literal[1]
+    revision: str
+    currency: Literal['money']
+    prices_include_player_tax: Literal[False]
+    cache_max_age_seconds: int
+    valid_until: str | None
+    categories: list[SurvivalShopCategoriesItem]
+    items: list[SurvivalShopItemsItem]
+    spawners: list[SurvivalShopSpawnersItem]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class PlayerShopBundlesBundlesItemProductsItemVariant1:
+    material: str
+    quantity: int
+    unit_price: float | None
+    available: bool
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class PlayerShopBundlesBundlesItem:
+    name: str
+    icon: str
+    products: list[PlayerShopBundlesBundlesItemProductsItemVariant1 | None]
+    available: bool
+    total_price: float | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class PlayerShopBundles(_Reply):
+    uuid: str
+    currency: Literal['money']
+    prices_include_player_tax: Literal[False]
+    catalog_revision: str
+    bundles: list[PlayerShopBundlesBundlesItem]
+    name: str
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BountyClaim(_Reply):
+    id: str
+    uuid: str
+    name: str
+    killer_uuid: str
+    killer_name: str
+    amount: float
+    currency: str
+    opened_at: str
+    claimed_at: str
+    contributor_count: int | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BingoPointRewards:
+    per_square: float
+    per_line: float
+    max_lines: int
+    full_house: float
+    daily: float
+    podium: list[float]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ItemEnchantment:
+    id: str
+    level: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ItemAttribute:
+    id: str
+    value: float
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ItemPrize:
+    material: str
+    name: str
+    rarity: str | None
+    enchantments: list[ItemEnchantment]
+    attributes: list[ItemAttribute]
+    quantity: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SpawnerPrize:
+    spawner: str
+    quantity: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BingoPrize:
+    rank: int
+    money: float
+    items: list[ItemPrize | SpawnerPrize]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BingoDetails(_Reply):
+    id: str
+    mode: str
+    max_minutes: int
+    free_space: bool
+    point_rewards: BingoPointRewards
+    prizes: list[BingoPrize]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class RaffleDetails(_Reply):
+    id: str
+    entry_currency: str
+    entry_cost: float
+    max_tickets_per_player: int
+    base_prize: float
+    bonus_per_ticket: float
+    prize_currency: str
+
+EventDetails = BingoDetails | RaffleDetails
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class EventScheduleEventsItem:
+    id: str
+    type: Literal['carnival']
+    starts_at: str
+    ends_at: str
+    summer: bool
+    rescheduled: bool
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class EventSchedule(_Reply):
+    timezone: str
+    enabled: bool
+    suspended: bool
+    active_event_id: str | None
+    bingo_start_day: int
+    bingo_days: int
+    events: list[EventScheduleEventsItem]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class StallOffersItemItemEnchantmentsItem:
+    id: str
+    level: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class StallOffersItemItemAttributesItem:
+    id: str
+    value: float
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class StallOffersItemItem:
+    material: str
+    name: str
+    rarity: str | None
+    enchantments: list[StallOffersItemItemEnchantmentsItem]
+    attributes: list[StallOffersItemItemAttributesItem]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class StallOffersItem:
+    offer_id: str
+    item: StallOffersItemItem
+    unit_price: float
+    currency: str
+    stock: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class Stall(_Reply):
+    stall_id: str
+    owner: str
+    owner_name: str
+    name: str
+    icon: str
+    lease_ends_at: str | None
+    offers: list[StallOffersItem]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class Bounty(_Reply):
+    uuid: str
+    name: str
+    amount: float
+    currency: str
+    rank: int
+    opened_at: str | None = None
+    contributor_count: int | None | None = None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BountyClaimPage(_Reply):
+    rows: list[BountyClaim]
+    next_cursor: str | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class EventSchedulePage(_Reply):
+    rows: list[EventSchedule]
+    next_cursor: str | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class StallPage(_Reply):
+    rows: list[Stall]
+    next_cursor: str | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class BountyPage(_Reply):
+    rows: list[Bounty]
+    next_cursor: str | None
+
+
 def _camel(name: str) -> str:
     head, *rest = name.split("_")
     return head + "".join(part.capitalize() for part in rest)
@@ -311,7 +515,12 @@ def _convert(tp: Any, value: Any) -> Any:
         return None
     origin = get_origin(tp)
     if origin is Union or origin is types.UnionType:
-        return _convert(next(arg for arg in get_args(tp) if arg is not type(None)), value)
+        variants = [arg for arg in get_args(tp) if arg is not type(None)]
+        if isinstance(value, dict) and all(dataclasses.is_dataclass(arg) for arg in variants):
+            variant = max(variants, key=lambda arg: sum(_camel(f.name) in value for f in dataclasses.fields(arg)))
+        else:
+            variant = variants[0]
+        return _convert(variant, value)
     if origin is list:
         if not isinstance(value, list):
             raise TypeError(f"expected a JSON array, got {type(value).__name__}")
@@ -327,6 +536,9 @@ def parse(cls: type[T], data: Any, **extra: Any) -> T:
     Object and array shapes are validated. Extra fields supply response metadata."""
     if not isinstance(data, dict):
         raise TypeError(f"expected a JSON object for {cls.__name__}, got {type(data).__name__}")
+    if get_origin(cls) in (Union, types.UnionType):
+        variants = get_args(cls)
+        cls = max(variants, key=lambda variant: sum(_camel(f.name) in data for f in dataclasses.fields(variant)))
     hints = _hints(cls)
     values = {
         f.name: _convert(hints[f.name], data.get(_camel(f.name)))

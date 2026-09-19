@@ -1,31 +1,16 @@
 openapi: 3.1.0
 info:
   title: MythicMC Public API
-  version: 1.0.0
+  version: 1.1.0
   summary: Read-only player, statistics and leaderboard data from the MythicMC network.
-  description: |
-    Player profiles, Survival stats, progression, teams, crate keys, and leaderboards
-    for the official MythicMC SDKs.
-
-    Send your API key in `Authorization: Bearer <key>`. Only `/health` works without a key.
-    Create a key at https://developer.mythicmc.net/. Production keys use development
-    limits until approved. The SDK endpoints below do not accept query parameters.
-
-    Gameplay data is delayed by at least five minutes. `X-Data-As-Of` gives the UTC
-    cutoff used for every field in the response. Numeric timestamps are Unix
-    milliseconds; fields that use ISO 8601 are marked below.
-
-    `null` means unknown, a missing optional group means unpublished, and an empty
-    array means there are no entries. Unknown values are never replaced with zero.
-
-    Responses may be reused from the origin cache for up to 15 seconds. Cache hits
-    still require a valid key and count toward its per-minute limit. `X-Cache` shows
-    the cache result. Responses use `Cache-Control: no-store` for browsers; the API
-    manages its own origin and edge caches.
-
-    Errors use `{"error": "..."}`. Handle them by HTTP status, since messages can
-    change. All 5xx responses use `required data is unavailable` without exposing
-    the underlying cause.
+  description: Official SDK endpoints for API 1.1.0. Gameplay data has a five-minute publication delay and privacy
+    filtering. Numeric timestamps are Unix milliseconds; date strings use ISO 8601. Unknown values are null. API
+    keys are required except for health and leaderboards. Collections accept limit (1–100, default 25) and cursor;
+    follow nextCursor until null. Leaderboards use public, max-age=15, stale-while-revalidate=45 and may be served
+    from the edge for up to 60 seconds. Other endpoints use no-store. Shop prices exclude player tax and expired
+    catalogs withhold buy prices. Saved baskets preserve five positional slots, including nulls; unavailable products
+    yield null totals. Schedule ends are exclusive. Stall stock is last-known, not live inventory. Sessions have
+    been removed (410 Gone).
   license:
     name: MIT
     identifier: MIT
@@ -33,241 +18,735 @@ externalDocs:
   description: Full API reference
   url: https://developer.mythicmc.net/#reference
 servers:
-  - url: https://api.mythicmc.net
+- url: https://api.mythicmc.net
 security:
-  - apiKey: []
+- apiKey: []
 tags:
-  - name: Players
-    description: Profiles, Survival statistics, progression, teams and crate keys.
-  - name: Leaderboards
-    description: Survival leaderboards by type and period.
-  - name: Service
-    description: API process status.
+- name: Players
+  description: Profiles, Survival statistics, progression, teams and crate keys.
+- name: Leaderboards
+  description: Survival leaderboards by type and period.
+- name: Service
+  description: API process status.
+- name: Survival
+  description: Shop catalogs, saved baskets, bounties, events and public stalls.
 paths:
   /v1/players/{id}:
     get:
       operationId: getPlayer
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player profile
-      description: |
-        A player's network profile, including players who have never played Survival.
+      description: 'A player''s network profile, including players who have never played Survival.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/PlayerId'
+      - $ref: '#/components/parameters/PlayerId'
       responses:
-        '200': { $ref: '#/components/responses/ProfileOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/PlayerNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/ProfileOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/PlayerNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
   /v1/players/{id}/stats:
     get:
       operationId: getPlayerStats
-      tags: [Players]
+      tags:
+      - Players
       summary: Get Survival statistics
-      description: |
-        Survival statistics from the player's published profile. Returns 404 if no
+      description: 'Survival statistics from the player''s published profile. Returns 404 if no
+
         Survival snapshot is available. These are delayed snapshots, not live stats.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/PlayerId'
+      - $ref: '#/components/parameters/PlayerId'
       responses:
-        '200': { $ref: '#/components/responses/StatsOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/StatsNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/StatsOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/StatsNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
   /v1/players/{id}/progression:
     get:
       operationId: getPlayerProgression
-      tags: [Players]
+      tags:
+      - Players
       summary: Get network level
-      description: |
-        Network level, XP, and public achievements. Network levels are separate from
+      description: 'Network level, XP, and public achievements. Network levels are separate from
+
         Minecraft experience levels and team levels.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/PlayerId'
+      - $ref: '#/components/parameters/PlayerId'
       responses:
-        '200': { $ref: '#/components/responses/ProgressionOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/PlayerNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/ProgressionOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/PlayerNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
   /v1/players/{id}/team:
     get:
       operationId: getPlayerTeam
-      tags: [Players]
+      tags:
+      - Players
       summary: Get player team
       description: The player's team and role. `team` is `null` if they have no team.
       parameters:
-        - $ref: '#/components/parameters/PlayerId'
+      - $ref: '#/components/parameters/PlayerId'
       responses:
-        '200': { $ref: '#/components/responses/TeamOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/PlayerNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/TeamOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/PlayerNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
   /v1/players/{id}/crate-keys:
     get:
       operationId: getPlayerCrateKeys
-      tags: [Players]
+      tags:
+      - Players
       summary: Get crate key balances
-      description: |
-        Available crate key balances. Missing crates have unpublished balances, not
+      description: 'Available crate key balances. Missing crates have unpublished balances, not
+
         zero balances.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/PlayerId'
+      - $ref: '#/components/parameters/PlayerId'
       responses:
-        '200': { $ref: '#/components/responses/CrateKeysOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/PlayerNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/CrateKeysOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/PlayerNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
   /v1/leaderboards:
     get:
       operationId: listLeaderboards
-      tags: [Leaderboards]
+      tags:
+      - Leaderboards
       summary: List leaderboards
       description: Available Survival leaderboards and their supported periods.
       responses:
-        '200': { $ref: '#/components/responses/LeaderboardsOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/LeaderboardsOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      security: []
   /v1/leaderboards/{type}/{period}:
     get:
       operationId: getLeaderboard
-      tags: [Leaderboards]
+      tags:
+      - Leaderboards
       summary: Get a leaderboard
-      description: |
-        Up to 15 ranked players for a Survival leaderboard. Values are formatted
+      description: 'Up to 15 ranked players for a Survival leaderboard. Values are formatted
+
         strings, such as `3d 4h` or `$2.83B`.
+
+        '
       parameters:
-        - name: type
-          in: path
-          required: true
-          schema: { $ref: '#/components/schemas/LeaderboardType' }
-        - name: period
-          in: path
-          required: true
-          description: '`networth` supports `all_time` only; the other boards support all four.'
-          schema: { $ref: '#/components/schemas/LeaderboardPeriod' }
+      - name: type
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/LeaderboardType'
+      - name: period
+        in: path
+        required: true
+        description: '`networth` supports `all_time` only; the other boards support all four.'
+        schema:
+          $ref: '#/components/schemas/LeaderboardPeriod'
       responses:
-        '200': { $ref: '#/components/responses/LeaderboardOk' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/LeaderboardNotFound' }
-        '429': { $ref: '#/components/responses/RateLimited' }
-        '503': { $ref: '#/components/responses/Unavailable' }
+        '200':
+          $ref: '#/components/responses/LeaderboardOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/LeaderboardNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      security: []
   /health:
     get:
       operationId: health
-      tags: [Service]
+      tags:
+      - Service
       summary: Health check
-      description: |
-        Checks whether the API process is running. No API key or rate limit applies.
+      description: 'Checks whether the API process is running. No API key or rate limit applies.
+
         This does not check game servers or data availability.
+
+        '
       security: []
       responses:
         '200':
           description: The API is up.
           headers:
-            Cache-Control: { $ref: '#/components/headers/CacheControl' }
+            Cache-Control:
+              $ref: '#/components/headers/CacheControl'
           content:
             application/json:
               schema:
                 type: object
-                required: [ok]
+                required:
+                - ok
                 properties:
-                  ok: { type: boolean }
-              example: { ok: true }
+                  ok:
+                    type: boolean
+              example:
+                ok: true
+  /v1/survival/shop:
+    get:
+      operationId: getSurvivalShop
+      tags:
+      - Survival
+      summary: Get survival shop
+      parameters:
+      - name: If-None-Match
+        in: header
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurvivalShop'
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Catalog revision validator.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '304':
+          description: Catalog revision unchanged; no body.
+  /v1/players/{id}/shop-bundles:
+    get:
+      operationId: getPlayerShopBundles
+      tags:
+      - Survival
+      summary: Get player shop bundles
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerShopBundles'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/survival/bounty-claims:
+    get:
+      operationId: listBountyClaims
+      tags:
+      - Survival
+      summary: List bounty claims
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BountyClaimPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/survival/bounty-claims/{claimId}:
+    get:
+      operationId: getBountyClaim
+      tags:
+      - Survival
+      summary: Get bounty claim
+      parameters:
+      - name: claimId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BountyClaim'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/survival/events/{eventId}/details:
+    get:
+      operationId: getEventDetails
+      tags:
+      - Survival
+      summary: Get event details
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/survival/event-schedules:
+    get:
+      operationId: listEventSchedules
+      tags:
+      - Survival
+      summary: List event schedules
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSchedulePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/survival/event-schedules/{scheduleId}:
+    get:
+      operationId: getEventSchedule
+      tags:
+      - Survival
+      summary: Get event schedule
+      parameters:
+      - name: scheduleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSchedule'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/survival/stalls:
+    get:
+      operationId: listStalls
+      tags:
+      - Survival
+      summary: List stalls
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StallPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/survival/stalls/{stallId}:
+    get:
+      operationId: getStall
+      tags:
+      - Survival
+      summary: Get stall
+      parameters:
+      - name: stallId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stall'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /v1/survival/bounties:
+    get:
+      operationId: listBounties
+      tags:
+      - Survival
+      summary: List bounties
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BountyPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /v1/survival/bounties/{id}:
+    get:
+      operationId: getBounty
+      tags:
+      - Survival
+      summary: Get bounty
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bounty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '404':
+          description: Unknown resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 components:
   securitySchemes:
     apiKey:
       type: http
       scheme: bearer
-      description: |
-        Send the developer key as `Authorization: Bearer <key>`. Keys start with `mmc_`.
+      description: 'Send the developer key as `Authorization: Bearer <key>`. Keys start with `mmc_`.
+
         Limits reset in fixed one-minute windows. `X-RateLimit-Limit-Minute` shows
-        the key's current allowance.
+
+        the key''s current allowance.
+
+        '
   parameters:
     PlayerId:
       name: id
       in: path
       required: true
-      description: |
-        Minecraft username or UUID, case-insensitive. Bedrock names may start with `.`.
+      description: 'Minecraft username or UUID, case-insensitive. Bedrock names may start with `.`.
+
         UUIDs work with or without dashes; responses use lowercase UUIDs with dashes.
+
+        '
       schema:
         type: string
-        pattern: '^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|\.?[A-Za-z0-9_]{1,16})$'
+        pattern: ^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|\.?[A-Za-z0-9_]{1,16})$
       example: Vicente_1313
   headers:
     DataDelaySeconds:
       description: Always `300`. Gameplay data is at least five minutes old.
-      schema: { type: integer }
+      schema:
+        type: integer
     DataAsOf:
-      description: |
-        Response cutoff in RFC 3339 UTC. Fresh reads use the current time minus five
-        minutes; cached reads retain their original cutoff. This is not a player's
+      description: 'Response cutoff in RFC 3339 UTC. Fresh reads use the current time minus five
+
+        minutes; cached reads retain their original cutoff. This is not a player''s
+
         last activity time.
-      schema: { type: string, format: date-time }
+
+        '
+      schema:
+        type: string
+        format: date-time
     Cache:
-      description: |
-        Cache result. `COALESCED` means the request shared a read already in progress.
+      description: 'Cache result. `COALESCED` means the request shared a read already in progress.
+
         Cached responses last up to 15 seconds. Omitted from error responses.
-      schema: { type: string, enum: [HIT, MISS, COALESCED] }
+
+        '
+      schema:
+        type: string
+        enum:
+        - HIT
+        - MISS
+        - COALESCED
     CacheControl:
-      description: Always `no-store`, on every response including errors.
-      schema: { type: string }
+      description: Public leaderboards use `public, max-age=15, stale-while-revalidate=45`; other endpoints use `no-store`.
+      schema:
+        type: string
     RateLimitMinute:
-      description: |
-        Requests allowed for this key in the current minute, including cache hits.
+      description: 'Requests allowed for this key in the current minute, including cache hits.
+
         Included on responses to recognised keys, even when the request fails.
-      schema: { type: integer }
+
+        '
+      schema:
+        type: integer
     RetryAfter:
       description: Whole seconds until the current one-minute window resets.
-      schema: { type: integer }
+      schema:
+        type: integer
   responses:
     ProfileOk:
       description: The player profile.
-      headers: &dataHeaders
-        X-Data-Delay-Seconds: { $ref: '#/components/headers/DataDelaySeconds' }
-        X-Data-As-Of: { $ref: '#/components/headers/DataAsOf' }
-        X-Cache: { $ref: '#/components/headers/Cache' }
-        Cache-Control: { $ref: '#/components/headers/CacheControl' }
-        X-RateLimit-Limit-Minute: { $ref: '#/components/headers/RateLimitMinute' }
+      headers: &id001
+        X-Data-Delay-Seconds:
+          $ref: '#/components/headers/DataDelaySeconds'
+        X-Data-As-Of:
+          $ref: '#/components/headers/DataAsOf'
+        X-Cache:
+          $ref: '#/components/headers/Cache'
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+        X-RateLimit-Limit-Minute:
+          $ref: '#/components/headers/RateLimitMinute'
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/PlayerProfile' }
+          schema:
+            $ref: '#/components/schemas/PlayerProfile'
           example:
             uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
             name: Vicente_1313
-            rank: { id: divine, label: DIVINE, weight: 40, color: '#b983ff' }
+            rank:
+              id: divine
+              label: DIVINE
+              weight: 40
+              color: '#b983ff'
             playtimeMinutes: 18240
             firstLogin: 1719878400000
             lastLogin: 1758226800000
             lastLogout: null
             online: true
-            location: { gamemode: survival }
+            location:
+              gamemode: survival
             level: 37
-            team: { id: 6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c, name: Nightfall, prefix: NF, level: 12, role: officer }
+            team:
+              id: 6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c
+              name: Nightfall
+              prefix: NF
+              level: 12
+              role: officer
             cosmetics:
               selected:
-                - { slot: hat, id: witch-hat, name: Witch Hat, category: hat, preview: null }
+              - slot: hat
+                id: witch-hat
+                name: Witch Hat
+                category: hat
             skin:
               textureUrl: https://textures.minecraft.net/texture/2c7a608fb2917a75164dc04dfbc7d4fe0d1e5b05b929381df20bb26853cb60f2
               model: classic
     StatsOk:
       description: The player's Survival statistics.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/PlayerStats' }
+          schema:
+            $ref: '#/components/schemas/PlayerStats'
           example:
             uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
             name: Vicente_1313
@@ -276,19 +755,15 @@ components:
               money: 1250340.5
               playtimeMinutes: 9120
               spawners: 3
-              ranks: { kills: 14, playtime: 52 }
-              combat: { kills: 318, deaths: 97, mobKills: 12044, damageDealt: 88412.5, damageTaken: 40210 }
-              world:
-                blocksMined: 402118
-                blocksPlaced: 188305
-                itemsCrafted: 22190
-                distanceKm: 1840.2
-                jumps: 96012
-                fishCaught: 410
-                animalsBred: 233
-                villagerTrades: 1502
-                itemsEnchanted: 188
-                raidsWon: 4
+              ranks:
+                kills: 14
+                playtime: 52
+              combat:
+                kills: 318
+                deaths: 97
+                mobKills: 12044
+                damageDealt: 88412.5
+                damageTaken: 40210
               events:
                 points: 120
                 pointsLifetime: 2210
@@ -298,16 +773,32 @@ components:
                 rafflesEntered: 18
                 bingoFinished: 6
                 bingoPodiums: 2
-                wins: { bingo: 1, raffle: 2, chatGame: 19 }
-              auction: { activeListings: 2, sold: 88, soldValue: 412000, bought: 51, boughtValue: 198500, openOrders: 1 }
-              bounty: { onHead: 25000, claimed: 7, claimedValue: 61000, claimedOn: 3 }
-              netWorth: { total: 2830000.75, rank: 9 }
+                wins:
+                  bingo: 1
+                  raffle: 2
+                  chatGame: 19
+              auction:
+                activeListings: 2
+                sold: 88
+                soldValue: 412000
+                bought: 51
+                boughtValue: 198500
+                openOrders: 1
+              bounty:
+                onHead: 25000
+                claimed: 7
+                claimedValue: 61000
+                claimedOn: 3
+              netWorth:
+                total: 2830000.75
+                rank: 9
     ProgressionOk:
       description: Network progression.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/PlayerProgression' }
+          schema:
+            $ref: '#/components/schemas/PlayerProgression'
           example:
             uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
             name: Vicente_1313
@@ -317,133 +808,202 @@ components:
             target: 3700
             maxed: false
             achievements:
-              - id: first-blood
-                name: First Blood
-                description: Win your first fight on Survival.
-                progress: 1
-                target: 1
-                complete: true
-                unlockedAt: '2026-07-02T01:14:52.000Z'
+            - id: first-blood
+              name: First Blood
+              description: Win your first fight on Survival.
+              progress: 1
+              target: 1
+              complete: true
+              unlockedAt: '2026-07-02T01:14:52.000Z'
     TeamOk:
       description: Team membership.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/PlayerTeam' }
+          schema:
+            $ref: '#/components/schemas/PlayerTeam'
           example:
             uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
             name: Vicente_1313
-            team: { id: 6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c, name: Nightfall, prefix: NF, level: 12, role: officer }
+            team:
+              id: 6f1c2a9e-3b7d-4e0a-9c55-1d2e3f4a5b6c
+              name: Nightfall
+              prefix: NF
+              level: 12
+              role: officer
     CrateKeysOk:
       description: Key balances.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/PlayerCrateKeys' }
+          schema:
+            $ref: '#/components/schemas/PlayerCrateKeys'
           example:
             uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
             name: Vicente_1313
             keys:
-              - { crateId: vote, keyType: virtual, available: 12 }
-              - { crateId: legendary, keyType: virtual, available: 1 }
+            - crateId: vote
+              keyType: virtual
+              available: 12
+            - crateId: legendary
+              keyType: virtual
+              available: 1
     LeaderboardsOk:
       description: Board types and periods.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/LeaderboardIndex' }
+          schema:
+            $ref: '#/components/schemas/LeaderboardIndex'
           example:
-            types: [kills, playtime, wins, networth]
-            periods: [daily, weekly, monthly, all_time]
+            types:
+            - kills
+            - playtime
+            - wins
+            - networth
+            periods:
+            - daily
+            - weekly
+            - monthly
+            - all_time
             boards:
-              kills: [daily, weekly, monthly, all_time]
-              playtime: [daily, weekly, monthly, all_time]
-              wins: [daily, weekly, monthly, all_time]
-              networth: [all_time]
+              kills:
+              - daily
+              - weekly
+              - monthly
+              - all_time
+              playtime:
+              - daily
+              - weekly
+              - monthly
+              - all_time
+              wins:
+              - daily
+              - weekly
+              - monthly
+              - all_time
+              networth:
+              - all_time
     LeaderboardOk:
       description: The board.
-      headers: *dataHeaders
+      headers: *id001
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Leaderboard' }
+          schema:
+            $ref: '#/components/schemas/Leaderboard'
           example:
             type: kills
             period: weekly
             rows:
-              - { rank: 1, uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f, name: Vicente_1313, value: '412' }
+            - rank: 1
+              uuid: 53eefb84-3ed8-4efb-9bb0-ddaaf3e01e9f
+              name: Vicente_1313
+              value: '412'
             stale: false
             windowStart: '2026-09-18T04:00:00.000Z'
             windowEnd: '2026-09-25T04:00:00.000Z'
     BadRequest:
-      description: |
-        Invalid username or UUID, or an unsupported query parameter.
-      headers: &errorHeaders
-        Cache-Control: { $ref: '#/components/headers/CacheControl' }
-        X-RateLimit-Limit-Minute: { $ref: '#/components/headers/RateLimitMinute' }
-        X-Data-Delay-Seconds: { $ref: '#/components/headers/DataDelaySeconds' }
-        X-Data-As-Of: { $ref: '#/components/headers/DataAsOf' }
+      description: 'Invalid username or UUID, or an unsupported query parameter.
+
+        '
+      headers: &id002
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+        X-RateLimit-Limit-Minute:
+          $ref: '#/components/headers/RateLimitMinute'
+        X-Data-Delay-Seconds:
+          $ref: '#/components/headers/DataDelaySeconds'
+        X-Data-As-Of:
+          $ref: '#/components/headers/DataAsOf'
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: invalid player identifier }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: invalid player identifier
     Unauthorized:
-      description: |
-        Missing bearer token, invalid key, or revoked key. Revocation takes effect
+      description: 'Missing bearer token, invalid key, or revoked key. Revocation takes effect
+
         on the next request.
+
+        '
       headers:
-        Cache-Control: { $ref: '#/components/headers/CacheControl' }
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: missing or invalid API key }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: missing or invalid API key
     PlayerNotFound:
       description: No published player profile matches this name or UUID.
-      headers: *errorHeaders
+      headers: *id002
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: unknown player }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unknown player
     StatsNotFound:
-      description: |
-        The player is unknown or has no published Survival statistics.
-      headers: *errorHeaders
+      description: 'The player is unknown or has no published Survival statistics.
+
+        '
+      headers: *id002
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: no Survival snapshot }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: no Survival snapshot
     LeaderboardNotFound:
       description: Unknown board type, or a period that board does not support.
-      headers: *errorHeaders
+      headers: *id002
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: unknown leaderboard }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: unknown leaderboard
     RateLimited:
-      description: |
-        The key has reached its per-minute limit. Cache hits count toward this limit.
+      description: 'The key has reached its per-minute limit. Cache hits count toward this limit.
+
         There is no daily cap.
+
+        '
       headers:
-        Cache-Control: { $ref: '#/components/headers/CacheControl' }
-        Retry-After: { $ref: '#/components/headers/RetryAfter' }
-        X-RateLimit-Limit-Minute: { $ref: '#/components/headers/RateLimitMinute' }
+        Cache-Control:
+          $ref: '#/components/headers/CacheControl'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-RateLimit-Limit-Minute:
+          $ref: '#/components/headers/RateLimitMinute'
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: too many requests }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: too many requests
     Unavailable:
-      description: |
-        Data is not yet published, storage is unavailable, or the username matches
+      description: 'Data is not yet published, storage is unavailable, or the username matches
+
         more than one player. The error message does not distinguish these cases.
-        Try again later; if a username keeps failing, use the player's UUID.
-      headers: *errorHeaders
+
+        Try again later; if a username keeps failing, use the player''s UUID.
+
+        '
+      headers: *id002
       content:
         application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-          example: { error: required data is unavailable }
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: required data is unavailable
   schemas:
     Error:
       type: object
-      required: [error]
+      required:
+      - error
       properties:
         error:
           type: string
@@ -451,308 +1011,592 @@ components:
     Uuid:
       type: string
       format: uuid
-      pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
       description: Lowercase dashed UUID.
     PlayerName:
       type: string
-      pattern: '^\.?[A-Za-z0-9_]{1,16}$'
+      pattern: ^\.?[A-Za-z0-9_]{1,16}$
       description: Username as known at the cutoff. Bedrock names keep their leading dot.
     Id:
       type: string
-      pattern: '^[a-z0-9_-]{1,64}$'
+      pattern: ^[a-z0-9_-]{1,64}$
       description: Stable lowercase identifier for lookups and comparisons.
     Rank:
       type: object
-      description: |
-        Public rank, without permissions or staff status. Defaults to the lowest
+      description: 'Public rank, without permissions or staff status. Defaults to the lowest
+
         public rank when no rank is published.
-      required: [id, label, weight, color]
+
+        '
+      required:
+      - id
+      - label
+      - weight
+      - color
       properties:
-        id: { $ref: '#/components/schemas/Id' }
-        label: { type: string, minLength: 1, maxLength: 32, description: 'Display name, such as `DIVINE`.' }
-        weight: { type: integer, minimum: 0, description: Ordering weight published by the network. }
+        id:
+          $ref: '#/components/schemas/Id'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 32
+          description: Display name, such as `DIVINE`.
+        weight:
+          type: integer
+          minimum: 0
+          description: Ordering weight published by the network.
         color:
-          type: [string, 'null']
-          pattern: '^#[0-9a-f]{6}$'
+          type:
+          - string
+          - 'null'
+          pattern: ^#[0-9a-f]{6}$
           description: Lowercase hex display colour, or `null` when the rank has none.
     TeamSummary:
       type: object
-      required: [id, name, prefix, level]
+      required:
+      - id
+      - name
+      - prefix
+      - level
       properties:
-        id: { $ref: '#/components/schemas/Uuid' }
-        name: { type: string, minLength: 1, maxLength: 24 }
-        prefix: { type: string, maxLength: 32, description: Public display tag; may be empty. }
-        level: { type: integer, minimum: 0, description: 'Team level, separate from player levels.' }
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 24
+        prefix:
+          type: string
+          maxLength: 32
+          description: Public display tag; may be empty.
+        level:
+          type: integer
+          minimum: 0
+          description: Team level, separate from player levels.
         role:
           type: string
-          enum: [leader, officer, member]
+          enum:
+          - leader
+          - officer
+          - member
           description: The player's role, if published.
     SelectedCosmetic:
       type: object
-      required: [slot, id, name, category, preview]
+      required:
+      - slot
+      - id
+      - name
+      - category
       properties:
-        slot: { $ref: '#/components/schemas/Id' }
-        id: { type: string, minLength: 1, maxLength: 128 }
-        name: { type: string, minLength: 1, maxLength: 128, description: Display name. }
-        category: { $ref: '#/components/schemas/Id' }
-        preview:
-          type: [string, 'null']
-          format: uri
-          description: HTTPS preview image, or `null` when none is published.
+        slot:
+          $ref: '#/components/schemas/Id'
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Display name.
+        category:
+          $ref: '#/components/schemas/Id'
     Skin:
       type: object
       description: Public skin texture.
-      required: [textureUrl, model]
+      required:
+      - textureUrl
+      - model
       properties:
         textureUrl:
           type: string
           format: uri
-          pattern: '^https://textures\.minecraft\.net/texture/[a-fA-F0-9]+$'
-        model: { type: string, enum: [slim, classic] }
+          pattern: ^https://textures\.minecraft\.net/texture/[a-fA-F0-9]+$
+        model:
+          type: string
+          enum:
+          - slim
+          - classic
     PlayerProfile:
       type: object
-      required: [uuid, name, rank, playtimeMinutes, firstLogin, lastLogin, lastLogout, online, location, level, team, cosmetics]
+      required:
+      - uuid
+      - name
+      - rank
+      - playtimeMinutes
+      - firstLogin
+      - lastLogin
+      - lastLogout
+      - online
+      - location
+      - level
+      - team
+      - cosmetics
       properties:
-        uuid: { $ref: '#/components/schemas/Uuid' }
-        name: { $ref: '#/components/schemas/PlayerName' }
-        rank: { $ref: '#/components/schemas/Rank' }
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          $ref: '#/components/schemas/PlayerName'
+        rank:
+          $ref: '#/components/schemas/Rank'
         playtimeMinutes:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           minimum: 0
           description: Whole minutes of public network playtime, or `null` when unknown.
         firstLogin:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           minimum: 1
-          description: |
-            First public network login, Unix milliseconds, or `null` when unknown.
+          description: 'First public network login, Unix milliseconds, or `null` when unknown.
+
             Logins are network connections, not transfers between servers.
-        lastLogin: { type: [integer, 'null'], minimum: 1, description: 'Most recent public login, Unix milliseconds, or `null`.' }
-        lastLogout:
-          type: [integer, 'null']
+
+            '
+        lastLogin:
+          type:
+          - integer
+          - 'null'
           minimum: 1
-          description: |
-            Most recent public logout, Unix milliseconds, or `null`. While the player is
+          description: Most recent public login, Unix milliseconds, or `null`.
+        lastLogout:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          description: 'Most recent public logout, Unix milliseconds, or `null`. While the player is
+
             online this is the end of their previous session.
+
+            '
         online:
-          type: [boolean, 'null']
-          description: |
-            Online status at the cutoff. `null` if the last observation is over 90
+          type:
+          - boolean
+          - 'null'
+          description: 'Online status at the cutoff. `null` if the last observation is over 90
+
             seconds older than the cutoff. Hidden players return `false`.
+
+            '
         location:
-          type: [object, 'null']
-          description: |
-            Gamemode at the cutoff, available only when `online` is `true`. Otherwise
+          type:
+          - object
+          - 'null'
+          description: 'Gamemode at the cutoff, available only when `online` is `true`. Otherwise
+
             `null`. Specific servers, shards, and lobbies are not exposed.
-          required: [gamemode]
+
+            '
+          required:
+          - gamemode
           properties:
-            gamemode: { $ref: '#/components/schemas/Id' }
+            gamemode:
+              $ref: '#/components/schemas/Id'
         level:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           minimum: 0
           description: Network level, or `null` when it has not been published.
         team:
           description: '`null` when the player is not in a team.'
           oneOf:
-            - $ref: '#/components/schemas/TeamSummary'
-            - type: 'null'
+          - $ref: '#/components/schemas/TeamSummary'
+          - type: 'null'
         cosmetics:
           type: object
-          required: [selected]
+          required:
+          - selected
           properties:
             selected:
-              type: [array, 'null']
+              type:
+              - array
+              - 'null'
               maxItems: 32
-              description: |
-                Cosmetics the player has equipped. `null` when no cosmetics snapshot has
+              description: 'Cosmetics the player has equipped. `null` when no cosmetics snapshot has
+
                 been published; `[]` when nothing is selected.
-              items: { $ref: '#/components/schemas/SelectedCosmetic' }
+
+                '
+              items:
+                $ref: '#/components/schemas/SelectedCosmetic'
         skin:
           description: Omitted entirely when no skin has been published. Never `null`.
           $ref: '#/components/schemas/Skin'
     SurvivalStats:
       type: object
-      description: |
-        `combat` and `world` are always included. Other fields and groups are omitted
-        when unpublished. Missing data means unknown, not zero. Damage uses health
-        points; distance uses kilometres.
-      required: [combat, world]
+      description: Only combat is required; unpublished groups are omitted.
+      required:
+      - combat
       properties:
-        level: { type: integer, minimum: 0, description: Minecraft experience level on Survival. }
-        money: { type: number, minimum: 0, description: Public economy balance. }
-        playtimeMinutes: { type: integer, minimum: 0, description: "Whole minutes, as used by Survival's profile." }
-        spawners: { type: integer, minimum: 0 }
+        level:
+          type: integer
+          minimum: 0
+          description: Minecraft experience level on Survival.
+        money:
+          type: number
+          minimum: 0
+          description: Public economy balance.
+        playtimeMinutes:
+          type: integer
+          minimum: 0
+          description: Whole minutes, as used by Survival's profile.
+        spawners:
+          type: integer
+          minimum: 0
         ranks:
           type: object
           description: Leaderboard positions. `0` means unranked.
-          required: [kills, playtime]
+          required:
+          - kills
+          - playtime
           properties:
-            kills: { type: integer, minimum: 0 }
-            playtime: { type: integer, minimum: 0 }
+            kills:
+              type: integer
+              minimum: 0
+            playtime:
+              type: integer
+              minimum: 0
         combat:
           type: object
-          required: [kills, deaths, mobKills, damageDealt, damageTaken]
+          required:
+          - kills
+          - deaths
+          - mobKills
+          - damageDealt
+          - damageTaken
           properties:
-            kills: { type: integer, minimum: 0 }
-            deaths: { type: integer, minimum: 0 }
-            mobKills: { type: integer, minimum: 0 }
-            damageDealt: { type: number, minimum: 0 }
-            damageTaken: { type: number, minimum: 0 }
-        world:
-          type: object
-          required: [blocksMined, blocksPlaced, itemsCrafted, distanceKm, jumps, fishCaught, animalsBred, villagerTrades, itemsEnchanted, raidsWon]
-          properties:
-            blocksMined: { type: integer, minimum: 0 }
-            blocksPlaced: { type: integer, minimum: 0 }
-            itemsCrafted: { type: integer, minimum: 0 }
-            distanceKm: { type: number, minimum: 0 }
-            jumps: { type: integer, minimum: 0 }
-            fishCaught: { type: integer, minimum: 0 }
-            animalsBred: { type: integer, minimum: 0 }
-            villagerTrades: { type: integer, minimum: 0 }
-            itemsEnchanted: { type: integer, minimum: 0 }
-            raidsWon: { type: integer, minimum: 0 }
+            kills:
+              type: integer
+              minimum: 0
+            deaths:
+              type: integer
+              minimum: 0
+            mobKills:
+              type: integer
+              minimum: 0
+            damageDealt:
+              type: number
+              minimum: 0
+            damageTaken:
+              type: number
+              minimum: 0
         events:
           type: object
-          required: [points, pointsLifetime, tickets, ticketsEarned, raffleLuck, rafflesEntered, bingoFinished, bingoPodiums, wins]
+          required:
+          - points
+          - pointsLifetime
+          - tickets
+          - ticketsEarned
+          - raffleLuck
+          - rafflesEntered
+          - bingoFinished
+          - bingoPodiums
+          - wins
           properties:
-            points: { type: integer, minimum: 0, description: Current event points. }
-            pointsLifetime: { type: integer, minimum: 0 }
-            tickets: { type: integer, minimum: 0 }
-            ticketsEarned: { type: integer, minimum: 0 }
-            raffleLuck: { type: number, minimum: 0 }
-            rafflesEntered: { type: integer, minimum: 0 }
-            bingoFinished: { type: integer, minimum: 0 }
-            bingoPodiums: { type: integer, minimum: 0 }
+            points:
+              type: integer
+              minimum: 0
+              description: Current event points.
+            pointsLifetime:
+              type: integer
+              minimum: 0
+            tickets:
+              type: integer
+              minimum: 0
+            ticketsEarned:
+              type: integer
+              minimum: 0
+            raffleLuck:
+              type: number
+              minimum: 0
+            rafflesEntered:
+              type: integer
+              minimum: 0
+            bingoFinished:
+              type: integer
+              minimum: 0
+            bingoPodiums:
+              type: integer
+              minimum: 0
             wins:
               type: object
-              required: [bingo, raffle, chatGame]
+              required:
+              - bingo
+              - raffle
+              - chatGame
               properties:
-                bingo: { type: integer, minimum: 0 }
-                raffle: { type: integer, minimum: 0 }
-                chatGame: { type: integer, minimum: 0 }
+                bingo:
+                  type: integer
+                  minimum: 0
+                raffle:
+                  type: integer
+                  minimum: 0
+                chatGame:
+                  type: integer
+                  minimum: 0
         auction:
           type: object
           description: Aggregate counts and amounts, not listings.
-          required: [activeListings, sold, soldValue, bought, boughtValue, openOrders]
+          required:
+          - activeListings
+          - sold
+          - soldValue
+          - bought
+          - boughtValue
+          - openOrders
           properties:
-            activeListings: { type: integer, minimum: 0 }
-            sold: { type: integer, minimum: 0 }
-            soldValue: { type: number, minimum: 0 }
-            bought: { type: integer, minimum: 0 }
-            boughtValue: { type: number, minimum: 0 }
-            openOrders: { type: integer, minimum: 0 }
+            activeListings:
+              type: integer
+              minimum: 0
+            sold:
+              type: integer
+              minimum: 0
+            soldValue:
+              type: number
+              minimum: 0
+            bought:
+              type: integer
+              minimum: 0
+            boughtValue:
+              type: number
+              minimum: 0
+            openOrders:
+              type: integer
+              minimum: 0
         bounty:
           type: object
-          required: [onHead, claimed, claimedValue, claimedOn]
+          required:
+          - onHead
+          - claimed
+          - claimedValue
+          - claimedOn
           properties:
-            onHead: { type: number, minimum: 0, description: Bounty currently on this player. }
-            claimed: { type: integer, minimum: 0, description: Bounties this player has collected. }
-            claimedValue: { type: number, minimum: 0, description: Total this player has collected. }
-            claimedOn: { type: integer, minimum: 0, description: Times a bounty on this player was collected. }
+            onHead:
+              type: number
+              minimum: 0
+              description: Bounty currently on this player.
+            claimed:
+              type: integer
+              minimum: 0
+              description: Bounties this player has collected.
+            claimedValue:
+              type: number
+              minimum: 0
+              description: Total this player has collected.
+            claimedOn:
+              type: integer
+              minimum: 0
+              description: Times a bounty on this player was collected.
         netWorth:
           type: object
-          required: [total, rank]
+          required:
+          - total
+          - rank
           properties:
-            total: { type: number, minimum: 0, description: 'Public net worth, valued from published shop prices.' }
-            rank: { type: integer, minimum: 0, description: Position in the net-worth ranking. }
+            total:
+              type: number
+              minimum: 0
+              description: Public net worth, valued from published shop prices.
+            rank:
+              type: integer
+              minimum: 0
+              description: Position in the net-worth ranking.
     PlayerStats:
       type: object
-      required: [uuid, name, survival]
+      required:
+      - uuid
+      - name
+      - survival
       properties:
-        uuid: { $ref: '#/components/schemas/Uuid' }
-        name: { $ref: '#/components/schemas/PlayerName' }
-        survival: { $ref: '#/components/schemas/SurvivalStats' }
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          $ref: '#/components/schemas/PlayerName'
+        survival:
+          $ref: '#/components/schemas/SurvivalStats'
     Achievement:
       type: object
-      required: [id, name, description, progress, target, complete, unlockedAt]
+      required:
+      - id
+      - name
+      - description
+      - progress
+      - target
+      - complete
+      - unlockedAt
       properties:
-        id: { type: string, minLength: 1, maxLength: 128 }
-        name: { type: string, minLength: 1, maxLength: 128 }
-        description: { type: string, maxLength: 2048 }
-        progress: { type: number, minimum: 0 }
-        target: { type: number, minimum: 0, description: Value of `progress` that completes it. }
-        complete: { type: boolean }
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 2048
+        progress:
+          type: number
+          minimum: 0
+        target:
+          type: number
+          minimum: 0
+          description: Value of `progress` that completes it.
+        complete:
+          type: boolean
         unlockedAt:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date-time
           description: ISO 8601 UTC instant, or `null` while incomplete.
     PlayerProgression:
       type: object
-      required: [uuid, name, level, experience, progress, target, maxed]
+      required:
+      - uuid
+      - name
+      - level
+      - experience
+      - progress
+      - target
+      - maxed
       properties:
-        uuid: { $ref: '#/components/schemas/Uuid' }
-        name: { $ref: '#/components/schemas/PlayerName' }
-        level: { type: integer, minimum: 0, description: Network level. }
-        experience: { type: number, minimum: 0, description: Total network experience. }
-        progress: { type: number, minimum: 0, description: Experience earned into the current level. }
-        target: { type: number, minimum: 0, description: 'Experience the current level spans; `0` once `maxed`.' }
-        maxed: { type: boolean, description: 'True at the highest network level, where `progress` and `target` are `0`.' }
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          $ref: '#/components/schemas/PlayerName'
+        level:
+          type: integer
+          minimum: 0
+          description: Network level.
+        experience:
+          type: number
+          minimum: 0
+          description: Total network experience.
+        progress:
+          type: number
+          minimum: 0
+          description: Experience earned into the current level.
+        target:
+          type: number
+          minimum: 0
+          description: Experience the current level spans; `0` once `maxed`.
+        maxed:
+          type: boolean
+          description: True at the highest network level, where `progress` and `target` are `0`.
         achievements:
           type: array
           description: Public achievements. Omitted when the network has not published them.
-          items: { $ref: '#/components/schemas/Achievement' }
+          items:
+            $ref: '#/components/schemas/Achievement'
     PlayerTeam:
       type: object
-      required: [uuid, name, team]
+      required:
+      - uuid
+      - name
+      - team
       properties:
-        uuid: { $ref: '#/components/schemas/Uuid' }
-        name: { $ref: '#/components/schemas/PlayerName' }
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          $ref: '#/components/schemas/PlayerName'
         team:
           description: '`null` when the player is not in a team.'
           oneOf:
-            - $ref: '#/components/schemas/TeamSummary'
-            - type: 'null'
+          - $ref: '#/components/schemas/TeamSummary'
+          - type: 'null'
     CrateKey:
       type: object
-      required: [crateId, keyType, available]
+      required:
+      - crateId
+      - keyType
+      - available
       properties:
-        crateId: { $ref: '#/components/schemas/Id' }
-        keyType: { $ref: '#/components/schemas/Id' }
+        crateId:
+          $ref: '#/components/schemas/Id'
+        keyType:
+          $ref: '#/components/schemas/Id'
+          deprecated: true
         available:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           minimum: 0
           description: Usable keys. `0` is a known empty balance; `null` means unknown.
     PlayerCrateKeys:
       type: object
-      required: [uuid, name, keys]
+      required:
+      - uuid
+      - name
+      - keys
       properties:
-        uuid: { $ref: '#/components/schemas/Uuid' }
-        name: { $ref: '#/components/schemas/PlayerName' }
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          $ref: '#/components/schemas/PlayerName'
         keys:
           type: array
           maxItems: 1000
           description: One entry per published crate. A crate that is absent is unknown, not zero.
-          items: { $ref: '#/components/schemas/CrateKey' }
+          items:
+            $ref: '#/components/schemas/CrateKey'
     LeaderboardType:
       type: string
-      enum: [kills, playtime, wins, networth]
+      enum:
+      - kills
+      - playtime
+      - wins
+      - networth
     LeaderboardPeriod:
       type: string
-      enum: [daily, weekly, monthly, all_time]
+      enum:
+      - daily
+      - weekly
+      - monthly
+      - all_time
     LeaderboardIndex:
       type: object
-      description: |
-        Available types and periods. Use `boards` to find valid type/period pairs.
-      required: [types, periods, boards]
+      description: 'Available types and periods. Use `boards` to find valid type/period pairs.
+
+        '
+      required:
+      - types
+      - periods
+      - boards
       properties:
         types:
           type: array
-          items: { $ref: '#/components/schemas/LeaderboardType' }
+          items:
+            $ref: '#/components/schemas/LeaderboardType'
         periods:
           type: array
-          items: { $ref: '#/components/schemas/LeaderboardPeriod' }
+          items:
+            $ref: '#/components/schemas/LeaderboardPeriod'
         boards:
           type: object
           description: Keyed by board type.
           additionalProperties:
             type: array
-            items: { $ref: '#/components/schemas/LeaderboardPeriod' }
+            items:
+              $ref: '#/components/schemas/LeaderboardPeriod'
     LeaderboardRow:
       type: object
-      required: [rank, uuid, name, value]
+      required:
+      - rank
+      - uuid
+      - name
+      - value
       properties:
-        rank: { type: integer, minimum: 1, description: 'Position in this response, starting at 1.' }
-        uuid: { $ref: '#/components/schemas/Uuid' }
+        rank:
+          type: integer
+          minimum: 1
+          description: Position in this response, starting at 1.
+        uuid:
+          $ref: '#/components/schemas/Uuid'
         name:
           description: The username recorded when the board was computed; it can be out of date.
           $ref: '#/components/schemas/PlayerName'
@@ -760,36 +1604,777 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          description: |
-            Display value, such as `3d 4h` or `$2.83B`. Use player statistics for
+          description: 'Display value, such as `3d 4h` or `$2.83B`. Use player statistics for
+
             numeric calculations.
+
+            '
     Leaderboard:
       type: object
-      required: [type, period, rows, stale]
+      required:
+      - type
+      - period
+      - rows
+      - stale
       properties:
-        type: { $ref: '#/components/schemas/LeaderboardType' }
-        period: { $ref: '#/components/schemas/LeaderboardPeriod' }
+        type:
+          $ref: '#/components/schemas/LeaderboardType'
+        period:
+          $ref: '#/components/schemas/LeaderboardPeriod'
         rows:
           type: array
           maxItems: 15
-          description: |
-            Up to 15 players in rank order. Players not publicly visible at the cutoff
+          description: 'Up to 15 players in rank order. Players not publicly visible at the cutoff
+
             are excluded, and remaining ranks are renumbered. Empty boards return `[]`.
-          items: { $ref: '#/components/schemas/LeaderboardRow' }
+
+            '
+          items:
+            $ref: '#/components/schemas/LeaderboardRow'
         stale:
           type: boolean
-          description: |
-            True if the board is over five minutes older than the cutoff, or its period
+          description: 'True if the board is over five minutes older than the cutoff, or its period
+
             has ended. Networth updates daily and uses a 26-hour threshold. Stale boards
+
             still return their last approved results.
+
+            '
         windowStart:
           type: string
           format: date-time
-          description: |
-            Period start in ISO 8601 UTC, omitted for `all_time`. Periods follow
+          description: 'Period start in ISO 8601 UTC, omitted for `all_time`. Periods follow
+
             America/New_York time and start at midnight: daily, Fridays for weekly,
+
             and the 1st for monthly. UTC offsets change with daylight saving time.
+
+            '
         windowEnd:
           type: string
           format: date-time
           description: ISO 8601 UTC instant the period ends. Omitted for `all_time`.
+    SurvivalShop:
+      type: object
+      properties:
+        schemaVersion:
+          const: 1
+        revision:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        currency:
+          const: money
+        pricesIncludePlayerTax:
+          const: false
+        cacheMaxAgeSeconds:
+          type: integer
+          minimum: 0
+          maximum: 3600
+        validUntil:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+          - type: 'null'
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              nameKey:
+                type: string
+                minLength: 1
+                maxLength: 128
+              icon:
+                type: string
+                pattern: ^minecraft:[a-z0-9_]+$
+              color:
+                type: string
+                minLength: 1
+                maxLength: 128
+              endsAt:
+                anyOf:
+                - type: string
+                  pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+                - type: 'null'
+              items:
+                type: array
+                items:
+                  type: string
+                  pattern: ^minecraft:[a-z0-9_]+$
+                maxItems: 10000
+            required:
+            - id
+            - nameKey
+            - icon
+            - color
+            - endsAt
+            - items
+            additionalProperties: false
+          maxItems: 10000
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              material:
+                type: string
+                pattern: ^minecraft:[a-z0-9_]+$
+              buyPrice:
+                anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
+              sellPrice:
+                anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
+            required:
+            - material
+            - buyPrice
+            - sellPrice
+            additionalProperties: false
+          maxItems: 10000
+        spawners:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              entity:
+                type: string
+                pattern: ^minecraft:[a-z0-9_]+$
+              icon:
+                type: string
+                pattern: ^minecraft:[a-z0-9_]+$
+              buyPrice:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+            required:
+            - id
+            - entity
+            - icon
+            - buyPrice
+            additionalProperties: false
+          maxItems: 10000
+      required:
+      - schemaVersion
+      - revision
+      - currency
+      - pricesIncludePlayerTax
+      - cacheMaxAgeSeconds
+      - validUntil
+      - categories
+      - items
+      - spawners
+      additionalProperties: false
+    PlayerShopBundles:
+      type: object
+      properties:
+        uuid:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        currency:
+          const: money
+        pricesIncludePlayerTax:
+          const: false
+        catalogRevision:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        bundles:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 128
+              icon:
+                type: string
+                pattern: ^minecraft:[a-z0-9_]+$
+              products:
+                type: array
+                minItems: 5
+                maxItems: 5
+                items:
+                  anyOf:
+                  - type: object
+                    properties:
+                      material:
+                        type: string
+                        pattern: ^minecraft:[a-z0-9_]+$
+                      quantity:
+                        type: integer
+                        minimum: 1
+                        maximum: 2147483647
+                      unitPrice:
+                        anyOf:
+                        - type: number
+                          minimum: 0
+                          maximum: 9007199254740991
+                        - type: 'null'
+                      available:
+                        type: boolean
+                    required:
+                    - material
+                    - quantity
+                    - unitPrice
+                    - available
+                    additionalProperties: false
+                  - type: 'null'
+              available:
+                type: boolean
+              totalPrice:
+                anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
+            required:
+            - name
+            - icon
+            - products
+            - available
+            - totalPrice
+            additionalProperties: false
+          maxItems: 10000
+        name:
+          type: string
+      required:
+      - uuid
+      - currency
+      - pricesIncludePlayerTax
+      - catalogRevision
+      - bundles
+      - name
+      additionalProperties: false
+    BountyClaim:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        uuid:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        name:
+          type: string
+          pattern: ^\.?[A-Za-z0-9_]{1,16}$
+        killerUuid:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        killerName:
+          type: string
+          pattern: ^\.?[A-Za-z0-9_]{1,16}$
+        amount:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        currency:
+          type: string
+          pattern: ^[a-z0-9_-]{1,64}$
+        openedAt:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+        claimedAt:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+        contributorCount:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          - type: 'null'
+      required:
+      - id
+      - uuid
+      - name
+      - killerUuid
+      - killerName
+      - amount
+      - currency
+      - openedAt
+      - claimedAt
+      - contributorCount
+      additionalProperties: false
+    EventDetails:
+      anyOf:
+      - type: object
+        properties:
+          id:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          mode:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          maxMinutes:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          freeSpace:
+            type: boolean
+          pointRewards:
+            type: object
+            properties:
+              perSquare:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+              perLine:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+              maxLines:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              fullHouse:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+              daily:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+              podium:
+                type: array
+                items:
+                  type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                maxItems: 10000
+            required:
+            - perSquare
+            - perLine
+            - maxLines
+            - fullHouse
+            - daily
+            - podium
+            additionalProperties: false
+          prizes:
+            type: array
+            items:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                money:
+                  type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                items:
+                  type: array
+                  items:
+                    anyOf:
+                    - type: object
+                      properties:
+                        material:
+                          type: string
+                          pattern: ^(?:minecraft:)?[a-z0-9_]+$
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        rarity:
+                          anyOf:
+                          - type: string
+                            pattern: ^[a-z0-9_-]{1,64}$
+                          - type: 'null'
+                        enchantments:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                minLength: 1
+                                maxLength: 128
+                              level:
+                                type: integer
+                                minimum: 0
+                                maximum: 9007199254740991
+                            required:
+                            - id
+                            - level
+                            additionalProperties: false
+                          maxItems: 64
+                        attributes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                minLength: 1
+                                maxLength: 128
+                              value:
+                                type: number
+                                minimum: 0
+                                maximum: 9007199254740991
+                            required:
+                            - id
+                            - value
+                            additionalProperties: false
+                          maxItems: 32
+                        quantity:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                      required:
+                      - material
+                      - name
+                      - rarity
+                      - enchantments
+                      - attributes
+                      - quantity
+                      additionalProperties: false
+                    - type: object
+                      properties:
+                        spawner:
+                          type: string
+                          pattern: ^[a-z0-9_-]{1,64}$
+                        quantity:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                      required:
+                      - spawner
+                      - quantity
+                      additionalProperties: false
+                  maxItems: 10000
+              required:
+              - rank
+              - money
+              - items
+              additionalProperties: false
+            maxItems: 10000
+        required:
+        - id
+        - mode
+        - maxMinutes
+        - freeSpace
+        - pointRewards
+        - prizes
+        additionalProperties: false
+      - type: object
+        properties:
+          id:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          entryCurrency:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          entryCost:
+            type: number
+            minimum: 0
+            maximum: 9007199254740991
+          maxTicketsPerPlayer:
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          basePrize:
+            type: number
+            minimum: 0
+            maximum: 9007199254740991
+          bonusPerTicket:
+            type: number
+            minimum: 0
+            maximum: 9007199254740991
+          prizeCurrency:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+        required:
+        - id
+        - entryCurrency
+        - entryCost
+        - maxTicketsPerPlayer
+        - basePrize
+        - bonusPerTicket
+        - prizeCurrency
+        additionalProperties: false
+    EventSchedule:
+      type: object
+      properties:
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 128
+        enabled:
+          type: boolean
+        suspended:
+          type: boolean
+        activeEventId:
+          anyOf:
+          - type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          - type: 'null'
+        bingoStartDay:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        bingoDays:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              type:
+                const: carnival
+              startsAt:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+              endsAt:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+              summer:
+                type: boolean
+              rescheduled:
+                type: boolean
+            required:
+            - id
+            - type
+            - startsAt
+            - endsAt
+            - summer
+            - rescheduled
+            additionalProperties: false
+          maxItems: 10000
+      required:
+      - timezone
+      - enabled
+      - suspended
+      - activeEventId
+      - bingoStartDay
+      - bingoDays
+      - events
+      additionalProperties: false
+    Stall:
+      type: object
+      properties:
+        stallId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        owner:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        ownerName:
+          type: string
+          pattern: ^\.?[A-Za-z0-9_]{1,16}$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        icon:
+          type: string
+          pattern: ^minecraft:[a-z0-9_]+$
+        leaseEndsAt:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+          - type: 'null'
+        offers:
+          type: array
+          items:
+            type: object
+            properties:
+              offerId:
+                type: string
+                minLength: 1
+                maxLength: 128
+              item:
+                type: object
+                properties:
+                  material:
+                    type: string
+                    pattern: ^(?:minecraft:)?[a-z0-9_]+$
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 128
+                  rarity:
+                    anyOf:
+                    - type: string
+                      pattern: ^[a-z0-9_-]{1,64}$
+                    - type: 'null'
+                  enchantments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        level:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                      required:
+                      - id
+                      - level
+                      additionalProperties: false
+                    maxItems: 64
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        value:
+                          type: number
+                          minimum: 0
+                          maximum: 9007199254740991
+                      required:
+                      - id
+                      - value
+                      additionalProperties: false
+                    maxItems: 32
+                required:
+                - material
+                - name
+                - rarity
+                - enchantments
+                - attributes
+                additionalProperties: false
+              unitPrice:
+                type: number
+                minimum: 0
+                maximum: 9007199254740991
+              currency:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              stock:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+            required:
+            - offerId
+            - item
+            - unitPrice
+            - currency
+            - stock
+            additionalProperties: false
+          maxItems: 10000
+      required:
+      - stallId
+      - owner
+      - ownerName
+      - name
+      - icon
+      - leaseEndsAt
+      - offers
+      additionalProperties: false
+    Bounty:
+      type: object
+      properties:
+        uuid:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        name:
+          type: string
+          pattern: ^\.?[A-Za-z0-9_]{1,16}$
+        amount:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        currency:
+          type: string
+          pattern: ^[a-z0-9_-]{1,64}$
+        rank:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        openedAt:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+        contributorCount:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          - type: 'null'
+      required:
+      - uuid
+      - name
+      - amount
+      - currency
+      - rank
+      additionalProperties: false
+    BountyClaimPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/BountyClaim'
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
+    EventSchedulePage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventSchedule'
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
+    StallPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Stall'
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
+    BountyPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bounty'
+        nextCursor:
+          anyOf:
+          - type: string
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
