@@ -1,0 +1,10 @@
+{
+  "name": "mythicmc-sdk-assets",
+  "account_id": "38d4e3379464427a662ab0569a40aa96",
+  "compatibility_date": "2026-09-19",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "none"
+  }
+}

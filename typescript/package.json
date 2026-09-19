@@ -1,0 +1,40 @@
+{
+  "name": "@mythicmcnetwork/typescript-sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript client for the MythicMC Public API.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mythicmcnetwork/mythicmc-sdk.git",
+    "directory": "typescript"
+  },
+  "homepage": "https://github.com/mythicmcnetwork/mythicmc-sdk",
+  "keywords": ["mythicmc", "minecraft", "api", "sdk"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

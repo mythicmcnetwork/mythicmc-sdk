@@ -1,0 +1,60 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm pack --pack-destination /tmp
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Import the tarball on the minimum supported Node
+        working-directory: /tmp
+        run: |
+          npm init -y > /dev/null && npm pkg set type=module
+          npm install --no-audit --no-fund ./mythicmcnetwork-typescript-sdk-*.tgz
+          node --input-type=module -e "
+            import { MythicMC, VERSION } from '@mythicmcnetwork/typescript-sdk'
+            new MythicMC({ apiKey: 'ci' })
+            console.log('imported', VERSION)
+          "
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.14']
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install .
+      - run: python -m unittest discover -s tests
+
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx --yes @redocly/cli@2 lint openapi.yaml

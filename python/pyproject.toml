@@ -1,0 +1,30 @@
+[build-system]
+# PEP 639 license metadata requires hatchling 1.27+.
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mythicmc-sdk"
+version = "0.1.0"
+description = "Official Python client for the MythicMC Public API."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "MythicMC" }]
+dependencies = ["httpx>=0.25,<1"]
+keywords = ["mythicmc", "minecraft", "api", "sdk"]
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Documentation = "https://github.com/mythicmcnetwork/mythicmc-sdk#readme"
+Repository = "https://github.com/mythicmcnetwork/mythicmc-sdk"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mythicmc"]
