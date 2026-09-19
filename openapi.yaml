@@ -8,7 +8,8 @@ info:
     for the official MythicMC SDKs.
 
     Send your API key in `Authorization: Bearer <key>`. Only `/health` works without a key.
-    These endpoints do not accept query parameters.
+    Create a key at https://developer.mythicmc.net/. Production keys use development
+    limits until approved. The SDK endpoints below do not accept query parameters.
 
     Gameplay data is delayed by at least five minutes. `X-Data-As-Of` gives the UTC
     cutoff used for every field in the response. Numeric timestamps are Unix
@@ -19,7 +20,8 @@ info:
 
     Responses may be reused from the origin cache for up to 15 seconds. Cache hits
     still require a valid key and count toward its per-minute limit. `X-Cache` shows
-    the cache result. Responses use `Cache-Control: no-store` for browsers and CDNs.
+    the cache result. Responses use `Cache-Control: no-store` for browsers; the API
+    manages its own origin and edge caches.
 
     Errors use `{"error": "..."}`. Handle them by HTTP status, since messages can
     change. All 5xx responses use `required data is unavailable` without exposing
@@ -27,6 +29,9 @@ info:
   license:
     name: MIT
     identifier: MIT
+externalDocs:
+  description: Full API reference
+  url: https://developer.mythicmc.net/#reference
 servers:
   - url: https://api.mythicmc.net
 security:

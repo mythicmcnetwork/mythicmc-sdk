@@ -8,6 +8,8 @@
 </p>
 
 <p align="center">
+  <a href="https://developer.mythicmc.net/">Developer portal</a> ·
+  <a href="https://developer.mythicmc.net/#reference">API reference</a> ·
   <a href="typescript/README.md">TypeScript</a> ·
   <a href="python/README.md">Python</a> ·
   <a href="openapi.yaml">OpenAPI</a> ·
@@ -25,8 +27,7 @@
 
 TypeScript has no runtime dependencies. Python includes synchronous and asynchronous clients, built on `httpx`.
 
-> [!NOTE]
-> The packages are not published to npm or PyPI yet. Until release, use the source installation instructions in the guides above. The developer portal is closed, so new API keys are currently unavailable.
+Create an API key in the [developer portal](https://developer.mythicmc.net/) using your MythicMC forum account. Production keys use development limits until approved.
 
 ### TypeScript
 
@@ -73,7 +74,7 @@ Both clients handle authentication, response metadata, typed errors, and rate-li
 | Crate keys | [Example](typescript/examples/get-player-crate-keys.ts) | [Example](python/examples/get_player_crate_keys.py) |
 | Leaderboards | [Example](typescript/examples/get-leaderboards.ts) | [Example](python/examples/get_leaderboards.py) |
 
-For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers these endpoints for other client languages.
+For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers the SDK endpoints. The [full API reference](https://developer.mythicmc.net/#reference) also documents player directories, history, network status, catalogs, and Survival market data, which can be called directly over HTTP.
 
 ## Working with the data
 

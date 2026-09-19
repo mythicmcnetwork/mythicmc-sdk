@@ -5,6 +5,8 @@ TypeScript client for the MythicMC Public API. It has no runtime dependencies an
 uses only `fetch`, `AbortSignal.timeout` and `setTimeout`, so it runs on Node 18 or
 newer and on any other runtime that provides those, such as Bun.
 
+Create an API key in the [developer portal](https://developer.mythicmc.net/) with your MythicMC forum account. Production keys use development limits until approved.
+
 ### Install
 
 ```sh
@@ -54,6 +56,8 @@ for (const row of board.rows) console.log(row.rank, row.name, row.value)
 | `health()` | `GET /health` |
 
 `id` is a username, case-insensitive, or a UUID with or without dashes.
+
+The [full API reference](https://developer.mythicmc.net/#reference) includes additional endpoints you can call directly over HTTP.
 
 Every reply is the response body, with the response headers parsed into a
 non-enumerable `meta` property, so `JSON.stringify(reply)` is the body alone.

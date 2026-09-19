@@ -4,6 +4,8 @@ MythicMC Public API (Python)
 Python client for the MythicMC Public API. Python 3.10 or newer, synchronous and
 asynchronous, built on [httpx](https://www.python-httpx.org/).
 
+Create an API key in the [developer portal](https://developer.mythicmc.net/) with your MythicMC forum account. Production keys use development limits until approved.
+
 ### Install
 
 ```sh
@@ -68,6 +70,8 @@ Both clients hold an httpx connection pool. Use them as context managers, or cal
 | `health()` | `GET /health` |
 
 `id` is a username, case-insensitive, or a UUID with or without dashes.
+
+The [full API reference](https://developer.mythicmc.net/#reference) includes additional endpoints you can call directly over HTTP.
 
 Replies are frozen dataclasses whose `snake_case` attributes come from the JSON's
 `camelCase` keys. Each reply also carries `meta`, parsed from the response headers,
