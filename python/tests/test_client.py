@@ -274,7 +274,7 @@ class Errors(unittest.TestCase):
             api.list_leaderboards()
         self.assertIn("expected a JSON array", raised.exception.message)
 
-    def test_requires_key(self):
+    def test_rejects_explicitly_empty_key(self):
         with self.assertRaises(ValueError):
             MythicMC("")
 
@@ -388,7 +388,7 @@ class Async(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(NotFoundError):
                 await api.get_player_team("nobody")
 
-    async def test_requires_key(self):
+    async def test_rejects_explicitly_empty_key(self):
         with self.assertRaises(ValueError):
             AsyncMythicMC("")
 

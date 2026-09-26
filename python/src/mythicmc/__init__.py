@@ -114,3 +114,31 @@ from .models import (
 )
 
 __all__ += ['SurvivalShopCategoriesItem', 'SurvivalShopItemsItem', 'SurvivalShopSpawnersItem', 'SurvivalShop', 'PlayerShopBundlesBundlesItemProductsItemVariant1', 'PlayerShopBundlesBundlesItem', 'PlayerShopBundles', 'BountyClaim', 'BingoPointRewards', 'ItemEnchantment', 'ItemAttribute', 'ItemPrize', 'SpawnerPrize', 'BingoPrize', 'BingoDetails', 'RaffleDetails', 'EventDetails', 'EventScheduleEventsItem', 'EventSchedule', 'StallOffersItemItemEnchantmentsItem', 'StallOffersItemItemAttributesItem', 'StallOffersItemItem', 'StallOffersItem', 'Stall', 'Bounty', 'BountyClaimPage', 'EventSchedulePage', 'StallPage', 'BountyPage']
+
+from .models import (
+    DuelsStats,
+    DuelsStatsRanked,
+    DuelsStatsUnranked,
+    DuelsStatsRankedWins,
+    DuelsStatsKitsItem,
+    DuelsStatsKitsItemRating,
+    DuelsStatsKitsItemWins,
+    DuelsStatsBest,
+    PlayerDuelsStats,
+    DuelsSummary,
+    DuelsLadder,
+    DuelsLadderTiersItem,
+    DuelsKit,
+    DuelsKitWaiting,
+    DuelsMatch,
+    DuelsMatchPlayersItem,
+    DuelsKitPage,
+    DuelsMatchPage,
+    DuelsLeaderboardIndex,
+    DuelsLeaderboardIndexMetricsItem,
+    DuelsLeaderboard,
+    DuelsLeaderboardRowsItem,
+    DuelsLeaderboardMetric,
+)
+
+__all__ += ['DuelsStats', 'DuelsStatsRanked', 'DuelsStatsUnranked', 'DuelsStatsRankedWins', 'DuelsStatsKitsItem', 'DuelsStatsKitsItemRating', 'DuelsStatsKitsItemWins', 'DuelsStatsBest', 'PlayerDuelsStats', 'DuelsSummary', 'DuelsLadder', 'DuelsLadderTiersItem', 'DuelsKit', 'DuelsKitWaiting', 'DuelsMatch', 'DuelsMatchPlayersItem', 'DuelsKitPage', 'DuelsMatchPage', 'DuelsLeaderboardIndex', 'DuelsLeaderboardIndexMetricsItem', 'DuelsLeaderboard', 'DuelsLeaderboardRowsItem', 'DuelsLeaderboardMetric']

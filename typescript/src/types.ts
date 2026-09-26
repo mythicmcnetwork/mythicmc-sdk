@@ -392,3 +392,187 @@ export interface BountyPage {
 }
 
 export interface PageOptions { limit?: number; cursor?: string }
+
+
+export interface DuelsStatsRanked {
+  wins: number
+  losses: number
+}
+
+export interface DuelsStatsUnranked {
+  wins: number
+  losses: number
+}
+
+export interface DuelsStatsRankedWins {
+  daily: number
+  weekly: number
+  monthly: number
+  all_time: number
+}
+
+export interface DuelsStatsKitsItemRating {
+  points: number
+  tier: string
+  tierName: string
+  division: 'III' | 'II' | 'I'
+  toNextDivision: number
+  place: number
+  wins: number
+  losses: number
+}
+
+export interface DuelsStatsKitsItemWins {
+  daily: number
+  weekly: number
+  monthly: number
+  all_time: number
+}
+
+export interface DuelsStatsKitsItem {
+  kit: string
+  rating: DuelsStatsKitsItemRating | null
+  wins: DuelsStatsKitsItemWins
+}
+
+export interface DuelsStatsBest {
+  points: number
+  tier: string
+  tierName: string
+  division: 'III' | 'II' | 'I'
+  toNextDivision: number
+  place: number
+  wins: number
+  losses: number
+  kit: string
+}
+
+export interface DuelsStats {
+  wins: number
+  losses: number
+  matches: number
+  ranked: DuelsStatsRanked
+  unranked: DuelsStatsUnranked
+  streak: number
+  bestStreak: number
+  rankedWins: DuelsStatsRankedWins
+  kits: (DuelsStatsKitsItem)[]
+  best: DuelsStatsBest | null
+}
+
+export interface PlayerDuelsStats {
+  uuid: string
+  name: string
+  duels: DuelsStats
+}
+
+export interface DuelsSummary {
+  arenas: number | null
+  capacity: number | null
+  activeMatches: number | null
+  playersInMatches: number | null
+  queued: number | null
+  matchesLastDay: number | null
+  matchesLastWeek: number | null
+  players: number | null
+  kits: (string)[]
+}
+
+export interface DuelsLadderTiersItem {
+  id: string
+  name: string
+  color: string
+  minimumPoints: number
+}
+
+export interface DuelsLadder {
+  tiers: (DuelsLadderTiersItem)[]
+  divisions: ('III' | 'II' | 'I')[]
+  divisionPoints: number
+  winPoints: number
+  lossPoints: number
+}
+
+export interface DuelsKitWaiting {
+  ranked: number | null
+  unranked: number | null
+}
+
+export interface DuelsKit {
+  id: string
+  name: string
+  pieces: number
+  armour: string
+  weapon: string
+  blocks: boolean
+  naturalRegeneration: boolean
+  boxing: boolean
+  waiting: DuelsKitWaiting
+  ratedPlayers: number | null
+}
+
+export interface DuelsMatchPlayersItem {
+  uuid: string
+  rounds: number
+  remainingHealth: number | null
+  name: string
+}
+
+export interface DuelsMatch {
+  id: string
+  kit: string
+  ranked: boolean
+  players: (DuelsMatchPlayersItem)[]
+  winner: string | null
+  finish: 'death' | 'hits' | 'disconnect' | 'surrender' | 'no_show' | 'timeout'
+  startedAt: string | null
+  endedAt: string
+  durationMs: number
+}
+
+export interface DuelsKitPage {
+  rows: (DuelsKit)[]
+  nextCursor: string | null
+}
+
+export interface DuelsMatchPage {
+  rows: (DuelsMatch)[]
+  nextCursor: string | null
+}
+
+export interface DuelsLeaderboardIndexMetricsItem {
+  metric: 'wins' | 'rating' | 'current-streak' | 'best-streak'
+  periods: ('daily' | 'weekly' | 'monthly' | 'all_time')[]
+  kit: 'optional' | 'required' | 'none'
+  unit: 'wins' | 'points'
+  ordering: 'descending'
+}
+
+export interface DuelsLeaderboardIndex {
+  gamemode: string
+  kits: (string)[]
+  metrics: (DuelsLeaderboardIndexMetricsItem)[]
+}
+
+export interface DuelsLeaderboardRowsItem {
+  rank: number
+  uuid: string
+  name: string
+  value: number
+  displayValue: string
+}
+
+export interface DuelsLeaderboard {
+  gamemode: string
+  metric: 'wins' | 'rating' | 'current-streak' | 'best-streak'
+  period: 'daily' | 'weekly' | 'monthly' | 'all_time'
+  kit: string | null
+  rows: (DuelsLeaderboardRowsItem)[]
+  nextCursor: string | null
+  computedAt: string | null
+  stale: boolean
+}
+
+export type DuelsLeaderboardMetric = 'wins' | 'rating' | 'current-streak' | 'best-streak'
+export interface DuelsLeaderboardOptions extends PageOptions { kit?: string }
+export interface DuelsMatchOptions extends PageOptions { player?: string }

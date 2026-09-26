@@ -19,7 +19,7 @@ from .errors import (
     UnavailableError,
 )
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 DEFAULT_BASE_URL = "https://api.mythicmc.net"
 
 T = TypeVar("T")
@@ -66,14 +66,14 @@ def _message(response: httpx.Response) -> str:
     return f"HTTP {response.status_code}"
 
 
-def _options(api_key: str, base_url: str, timeout: float) -> dict[str, Any]:
-    if not api_key:
+def _options(api_key: str | None, base_url: str, timeout: float) -> dict[str, Any]:
+    if api_key is not None and not api_key:
         raise ValueError("api_key is required")
     return {
         "base_url": (base_url or DEFAULT_BASE_URL).rstrip("/"),
         "timeout": timeout,
         "headers": {
-            "Authorization": f"Bearer {api_key}",
+            **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
             "Accept": "application/json",
             "User-Agent": f"mythicmc-api-python/{__version__}",
         },
@@ -119,7 +119,7 @@ class MythicMC(_Base):
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None = None,
         *,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = 10.0,
@@ -173,6 +173,33 @@ class MythicMC(_Base):
     def get_player_crate_keys(self, id: str) -> models.PlayerCrateKeys:
         return self._get(models.PlayerCrateKeys, self._player(id, "/crate-keys"))
 
+    def get_player_duels_stats(self, id: str) -> models.PlayerDuelsStats:
+        return self._get(models.PlayerDuelsStats, f'/v1/players/{quote(id, safe="")}/stats/duels')
+
+    def get_duels(self) -> models.DuelsSummary:
+        return self._get(models.DuelsSummary, '/v1/duels')
+
+    def get_duels_ladder(self) -> models.DuelsLadder:
+        return self._get(models.DuelsLadder, '/v1/duels/ladder')
+
+    def list_duels_kits(self, *, limit: int | None = None, cursor: str | None = None) -> models.DuelsKitPage:
+        return self._get(models.DuelsKitPage, '/v1/duels/kits' + _page_query(limit, cursor))
+
+    def get_duels_kit(self, kit: str) -> models.DuelsKit:
+        return self._get(models.DuelsKit, f'/v1/duels/kits/{quote(kit, safe="")}')
+
+    def list_duels_matches(self, *, limit: int | None = None, cursor: str | None = None, player: str | None = None) -> models.DuelsMatchPage:
+        return self._get(models.DuelsMatchPage, '/v1/duels/matches' + _page_query(limit, cursor, player=player))
+
+    def get_duels_match(self, id: str) -> models.DuelsMatch:
+        return self._get(models.DuelsMatch, f'/v1/duels/matches/{quote(id, safe="")}')
+
+    def list_duels_leaderboards(self) -> models.DuelsLeaderboardIndex:
+        return self._get(models.DuelsLeaderboardIndex, '/v1/gamemodes/duels/leaderboards')
+
+    def get_duels_leaderboard(self, metric: models.DuelsLeaderboardMetric, period: models.LeaderboardPeriod, *, limit: int | None = None, cursor: str | None = None, kit: str | None = None) -> models.DuelsLeaderboard:
+        return self._get(models.DuelsLeaderboard, f'/v1/gamemodes/duels/leaderboards/{quote(metric, safe="")}/{quote(period, safe="")}' + _page_query(limit, cursor, kit=kit))
+
     def list_leaderboards(self) -> models.LeaderboardIndex:
         return self._get(models.LeaderboardIndex, "/v1/leaderboards")
 
@@ -223,7 +250,7 @@ class AsyncMythicMC(_Base):
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None = None,
         *,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = 10.0,
@@ -277,6 +304,33 @@ class AsyncMythicMC(_Base):
     async def get_player_crate_keys(self, id: str) -> models.PlayerCrateKeys:
         return await self._get(models.PlayerCrateKeys, self._player(id, "/crate-keys"))
 
+    async def get_player_duels_stats(self, id: str) -> models.PlayerDuelsStats:
+        return await self._get(models.PlayerDuelsStats, f'/v1/players/{quote(id, safe="")}/stats/duels')
+
+    async def get_duels(self) -> models.DuelsSummary:
+        return await self._get(models.DuelsSummary, '/v1/duels')
+
+    async def get_duels_ladder(self) -> models.DuelsLadder:
+        return await self._get(models.DuelsLadder, '/v1/duels/ladder')
+
+    async def list_duels_kits(self, *, limit: int | None = None, cursor: str | None = None) -> models.DuelsKitPage:
+        return await self._get(models.DuelsKitPage, '/v1/duels/kits' + _page_query(limit, cursor))
+
+    async def get_duels_kit(self, kit: str) -> models.DuelsKit:
+        return await self._get(models.DuelsKit, f'/v1/duels/kits/{quote(kit, safe="")}')
+
+    async def list_duels_matches(self, *, limit: int | None = None, cursor: str | None = None, player: str | None = None) -> models.DuelsMatchPage:
+        return await self._get(models.DuelsMatchPage, '/v1/duels/matches' + _page_query(limit, cursor, player=player))
+
+    async def get_duels_match(self, id: str) -> models.DuelsMatch:
+        return await self._get(models.DuelsMatch, f'/v1/duels/matches/{quote(id, safe="")}')
+
+    async def list_duels_leaderboards(self) -> models.DuelsLeaderboardIndex:
+        return await self._get(models.DuelsLeaderboardIndex, '/v1/gamemodes/duels/leaderboards')
+
+    async def get_duels_leaderboard(self, metric: models.DuelsLeaderboardMetric, period: models.LeaderboardPeriod, *, limit: int | None = None, cursor: str | None = None, kit: str | None = None) -> models.DuelsLeaderboard:
+        return await self._get(models.DuelsLeaderboard, f'/v1/gamemodes/duels/leaderboards/{quote(metric, safe="")}/{quote(period, safe="")}' + _page_query(limit, cursor, kit=kit))
+
     async def list_leaderboards(self) -> models.LeaderboardIndex:
         return await self._get(models.LeaderboardIndex, "/v1/leaderboards")
 
@@ -322,6 +376,6 @@ class AsyncMythicMC(_Base):
         return await self._get(models.Health, "/health")
 
 
-def _page_query(limit: int | None, cursor: str | None) -> str:
-    params = {key: value for key, value in {"limit": limit, "cursor": cursor}.items() if value is not None}
+def _page_query(limit: int | None, cursor: str | None, **filters: str | None) -> str:
+    params = {key: value for key, value in {"limit": limit, "cursor": cursor, **filters}.items() if value is not None}
     return "?" + urlencode(params) if params else ""

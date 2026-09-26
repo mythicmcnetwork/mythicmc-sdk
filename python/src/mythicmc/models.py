@@ -541,8 +541,190 @@ def parse(cls: type[T], data: Any, **extra: Any) -> T:
         cls = max(variants, key=lambda variant: sum(_camel(f.name) in data for f in dataclasses.fields(variant)))
     hints = _hints(cls)
     values = {
-        f.name: _convert(hints[f.name], data.get(_camel(f.name)))
+        f.name: _convert(hints[f.name], data.get(f.metadata.get("json_name", _camel(f.name))))
         for f in dataclasses.fields(cls)  # type: ignore[arg-type]
         if f.name not in extra
     }
     return cls(**values, **extra)
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsRanked:
+    wins: int
+    losses: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsUnranked:
+    wins: int
+    losses: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsRankedWins:
+    daily: int
+    weekly: int
+    monthly: int
+    all_time: int = field(metadata={"json_name": "all_time"})
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsKitsItemRating:
+    points: int
+    tier: str
+    tier_name: str
+    division: Literal['III', 'II', 'I']
+    to_next_division: int
+    place: int
+    wins: int
+    losses: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsKitsItemWins:
+    daily: int
+    weekly: int
+    monthly: int
+    all_time: int = field(metadata={"json_name": "all_time"})
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsKitsItem:
+    kit: str
+    rating: DuelsStatsKitsItemRating | None
+    wins: DuelsStatsKitsItemWins
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStatsBest:
+    points: int
+    tier: str
+    tier_name: str
+    division: Literal['III', 'II', 'I']
+    to_next_division: int
+    place: int
+    wins: int
+    losses: int
+    kit: str
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsStats:
+    wins: int
+    losses: int
+    matches: int
+    ranked: DuelsStatsRanked
+    unranked: DuelsStatsUnranked
+    streak: int
+    best_streak: int
+    ranked_wins: DuelsStatsRankedWins
+    kits: list[DuelsStatsKitsItem]
+    best: DuelsStatsBest | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class PlayerDuelsStats(_Reply):
+    uuid: str
+    name: str
+    duels: DuelsStats
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsSummary(_Reply):
+    arenas: int | None
+    capacity: int | None
+    active_matches: int | None
+    players_in_matches: int | None
+    queued: int | None
+    matches_last_day: int | None
+    matches_last_week: int | None
+    players: int | None
+    kits: list[str]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLadderTiersItem:
+    id: str
+    name: str
+    color: str
+    minimum_points: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLadder(_Reply):
+    tiers: list[DuelsLadderTiersItem]
+    divisions: list[Literal['III', 'II', 'I']]
+    division_points: int
+    win_points: int
+    loss_points: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsKitWaiting:
+    ranked: int | None
+    unranked: int | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsKit(_Reply):
+    id: str
+    name: str
+    pieces: int
+    armour: str
+    weapon: str
+    blocks: bool
+    natural_regeneration: bool
+    boxing: bool
+    waiting: DuelsKitWaiting
+    rated_players: int | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsMatchPlayersItem:
+    uuid: str
+    rounds: int
+    remaining_health: float | None
+    name: str
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsMatch(_Reply):
+    id: str
+    kit: str
+    ranked: bool
+    players: list[DuelsMatchPlayersItem]
+    winner: str | None
+    finish: Literal['death', 'hits', 'disconnect', 'surrender', 'no_show', 'timeout']
+    started_at: str | None
+    ended_at: str
+    duration_ms: int
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsKitPage(_Reply):
+    rows: list[DuelsKit]
+    next_cursor: str | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsMatchPage(_Reply):
+    rows: list[DuelsMatch]
+    next_cursor: str | None
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLeaderboardIndexMetricsItem:
+    metric: Literal['wins', 'rating', 'current-streak', 'best-streak']
+    periods: list[Literal['daily', 'weekly', 'monthly', 'all_time']]
+    kit: Literal['optional', 'required', 'none']
+    unit: Literal['wins', 'points']
+    ordering: Literal['descending']
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLeaderboardIndex(_Reply):
+    gamemode: str
+    kits: list[str]
+    metrics: list[DuelsLeaderboardIndexMetricsItem]
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLeaderboardRowsItem:
+    rank: int
+    uuid: str
+    name: str
+    value: int
+    display_value: str
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DuelsLeaderboard(_Reply):
+    gamemode: str
+    metric: Literal['wins', 'rating', 'current-streak', 'best-streak']
+    period: Literal['daily', 'weekly', 'monthly', 'all_time']
+    kit: str | None
+    rows: list[DuelsLeaderboardRowsItem]
+    next_cursor: str | None
+    computed_at: str | None
+    stale: bool
+
+DuelsLeaderboardMetric = Literal["wins", "rating", "current-streak", "best-streak"]

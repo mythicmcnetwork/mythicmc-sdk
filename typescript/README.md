@@ -66,7 +66,7 @@ non-enumerable `meta` property, so `JSON.stringify(reply)` is the body alone.
 
 | Option | Default | |
 | --- | --- | --- |
-| `apiKey` | required | Your API key. |
+| `apiKey` | omitted | Required for keyed endpoints; omit for public leaderboards and health. |
 | `baseUrl` | `https://api.mythicmc.net` | |
 | `timeoutMs` | `10000` | Per attempt. |
 | `maxRetries` | `2` | Retries after a `429`, each waiting for `Retry-After`, or a second when there is none. A wait over a minute throws instead. `0` disables. |
@@ -110,7 +110,7 @@ npm run typecheck && npm test && npm run build
 
 `npm run typecheck` covers `src`, `test` and `examples`.
 
-## API 1.1.0
+## Previous release: API 1.1.0
 
 See [release notes](../RELEASE_NOTES.md) for breaking changes and migration instructions.
 
@@ -129,3 +129,40 @@ See [release notes](../RELEASE_NOTES.md) for breaking changes and migration inst
 | Bounty | `getBounty` | `get_bounty` |
 
 List methods take pagination options (`{ limit, cursor }` in TypeScript; keyword arguments in Python). Follow `nextCursor` / `next_cursor` until null. IDs are URL-encoded. Shop reads optionally accept an ETag and return null / None on 304; otherwise use `reply.meta.etag` for the next conditional request.
+
+## API 1.2.0 — Duels
+
+Duels now has typed player stats, summaries, ladder rules, kits, match history
+and leaderboards. Wins support rolling `daily`, `weekly`, `monthly` windows and
+`all_time`. Ratings require a `kit` and `all_time`; streaks use `all_time` without
+a kit. Get available kit IDs from leaderboard discovery.
+
+Leaderboards and health need no API key. Other endpoints require one. Existing
+keyed clients work unchanged. Gameplay data is delayed by at least five minutes
+and filtered for player privacy. Unknown or stale counts can be null.
+
+```ts
+import { MythicMC } from '@mythicmcnetwork/typescript-sdk'
+
+const api = new MythicMC()
+const index = await api.listDuelsLeaderboards()
+const board = await api.getDuelsLeaderboard('wins', 'weekly', { limit: 25 })
+const kit = index.kits[0]
+if (kit) {
+  const ratings = await api.getDuelsLeaderboard('rating', 'all_time', { kit })
+  console.log(ratings.rows)
+}
+
+const keyed = new MythicMC({ apiKey: process.env.MYTHICMC_API_KEY! })
+const stats = await keyed.getPlayerDuelsStats('Vicente_1313')
+const matches = await keyed.listDuelsMatches({ player: stats.uuid, limit: 25 })
+```
+
+New methods: `getPlayerDuelsStats`, `getDuels`, `getDuelsLadder`,
+`listDuelsKits`, `getDuelsKit`, `listDuelsMatches`, `getDuelsMatch`,
+`listDuelsLeaderboards`, and `getDuelsLeaderboard`.
+
+Follow `nextCursor` (Python: `next_cursor`) until null, passing the same filters
+to each call. Cursors expire after 15 minutes. Match history retains up to 2,000
+finished public matches from the last 15 days; private duels and bot matches are
+excluded.

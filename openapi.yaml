@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: MythicMC Public API
-  version: 1.1.0
+  version: 1.2.0
   summary: Read-only player, statistics and leaderboard data from the MythicMC network.
-  description: Official SDK endpoints for API 1.1.0. Gameplay data has a five-minute publication delay and privacy
+  description: Official SDK endpoints for API 1.2.0. Gameplay data has a five-minute publication delay and privacy
     filtering. Numeric timestamps are Unix milliseconds; date strings use ISO 8601. Unknown values are null. API
     keys are required except for health and leaderboards. Collections accept limit (1–100, default 25) and cursor;
     follow nextCursor until null. Leaderboards use public, max-age=15, stale-while-revalidate=45 and may be served
@@ -30,6 +30,8 @@ tags:
   description: API process status.
 - name: Survival
   description: Shop catalogs, saved baskets, bounties, events and public stalls.
+- name: Duels
+  description: Duels statistics, kits, matches and public leaderboards.
 paths:
   /v1/players/{id}:
     get:
@@ -621,6 +623,322 @@ paths:
                 properties:
                   error:
                     type: string
+  /v1/players/{id}/stats/duels:
+    get:
+      operationId: getPlayerDuelsStats
+      tags:
+      - Duels
+      summary: Get player duels stats
+      description: Overall records, streaks, rolling wins and per-kit ratings. The practice alias is accepted. Returns
+        404 when no Duels snapshot is published. Requires an API key. Gameplay data is delayed at least five minutes
+        and filtered for player privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerDuelsStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/duels:
+    get:
+      operationId: getDuels
+      tags:
+      - Duels
+      summary: Get duels
+      description: Arena, match and queue counts. Live counts become null when observed more than 90 seconds before
+        the response cutoff; privacy filtering may null player counts. Requires an API key. Gameplay data is delayed
+        at least five minutes and filtered for player privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/duels/ladder:
+    get:
+      operationId: getDuelsLadder
+      tags:
+      - Duels
+      summary: Get duels ladder
+      description: Published tiers, point floors, divisions and points per win and loss. Requires an API key. Gameplay
+        data is delayed at least five minutes and filtered for player privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsLadder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /v1/duels/kits:
+    get:
+      operationId: listDuelsKits
+      tags:
+      - Duels
+      summary: List duels kits
+      description: Paginated kit loadouts and rules. Queue counts can be null when stale; privacy filtering may
+        null rated-player counts. Requires an API key. Gameplay data is delayed at least five minutes and filtered
+        for player privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsKitPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: string
+  /v1/duels/kits/{kit}:
+    get:
+      operationId: getDuelsKit
+      tags:
+      - Duels
+      summary: Get duels kit
+      description: One published kit, its rules and delayed queue counts. Counts can be null when stale or withheld
+        for privacy. Requires an API key. Gameplay data is delayed at least five minutes and filtered for player
+        privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsKit'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - name: kit
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/duels/matches:
+    get:
+      operationId: listDuelsMatches
+      tags:
+      - Duels
+      summary: List duels matches
+      description: Finished public matches from the last 15 days, up to 2,000 retained records. Supports cursor
+        pagination and a player username or UUID filter. Private duels and bot matches are excluded; both players
+        must be visible. Requires an API key. Gameplay data is delayed at least five minutes and filtered for player
+        privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsMatchPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: string
+      - name: player
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: string
+  /v1/duels/matches/{id}:
+    get:
+      operationId: getDuelsMatch
+      tags:
+      - Duels
+      summary: Get duels match
+      description: One finished public match. Both players must be visible. winner and startedAt can be null; durationMs
+        is milliseconds. Requires an API key. Gameplay data is delayed at least five minutes and filtered for player
+        privacy.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsMatch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /v1/gamemodes/duels/leaderboards:
+    get:
+      operationId: listDuelsLeaderboards
+      tags:
+      - Duels
+      summary: List duels leaderboards
+      description: Gameplay data is delayed at least five minutes and filtered for player privacy. No API key required.
+        Wins support daily, weekly, monthly and all_time; dated windows roll. Rating and streaks support all_time
+        only. Ratings require kit. The practice gamemode alias is also accepted.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsLeaderboardIndex'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      security: []
+  /v1/gamemodes/duels/leaderboards/{metric}/{period}:
+    get:
+      operationId: getDuelsLeaderboard
+      tags:
+      - Duels
+      summary: Get duels leaderboard
+      description: Gameplay data is delayed at least five minutes and filtered for player privacy. No API key required.
+        Wins support daily, weekly, monthly and all_time; dated windows roll. Rating and streaks support all_time
+        only. Ratings require kit. The practice gamemode alias is also accepted.
+      responses:
+        '200':
+          description: Published Duels snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuelsLeaderboard'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No published record or leaderboard matches this request.
+        '503':
+          $ref: '#/components/responses/Unavailable'
+      parameters:
+      - name: metric
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: period
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        required: false
+        description: Pagination or player filter.
+        schema:
+          type: string
+      - name: kit
+        in: query
+        required: false
+        description: Required for rating, optional for wins, forbidden for streaks.
+        schema:
+          type: string
+      security: []
 components:
   securitySchemes:
     apiKey:
@@ -676,7 +994,8 @@ components:
         - MISS
         - COALESCED
     CacheControl:
-      description: Public leaderboards use `public, max-age=15, stale-while-revalidate=45`; other endpoints use `no-store`.
+      description: Public leaderboards use `public, max-age=15, stale-while-revalidate=45`; other endpoints use
+        `no-store`.
       schema:
         type: string
     RateLimitMinute:
@@ -2378,3 +2697,615 @@ components:
       required:
       - rows
       - nextCursor
+    DuelsStats:
+      type: object
+      properties:
+        wins:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        losses:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        matches:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        ranked:
+          type: object
+          properties:
+            wins:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            losses:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          required:
+          - wins
+          - losses
+          additionalProperties: false
+        unranked:
+          type: object
+          properties:
+            wins:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            losses:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          required:
+          - wins
+          - losses
+          additionalProperties: false
+        streak:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        bestStreak:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        rankedWins:
+          type: object
+          properties:
+            daily:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            weekly:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            monthly:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            all_time:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          required:
+          - daily
+          - weekly
+          - monthly
+          - all_time
+          additionalProperties: false
+        kits:
+          type: array
+          items:
+            type: object
+            properties:
+              kit:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              rating:
+                anyOf:
+                - type: object
+                  properties:
+                    points:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    tier:
+                      type: string
+                      pattern: ^[a-z0-9_-]{1,64}$
+                    tierName:
+                      type: string
+                      minLength: 1
+                      maxLength: 32
+                    division:
+                      enum:
+                      - III
+                      - II
+                      - I
+                    toNextDivision:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    place:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    wins:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    losses:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                  required:
+                  - points
+                  - tier
+                  - tierName
+                  - division
+                  - toNextDivision
+                  - place
+                  - wins
+                  - losses
+                  additionalProperties: false
+                - type: 'null'
+              wins:
+                type: object
+                properties:
+                  daily:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                  weekly:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                  monthly:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                  all_time:
+                    type: integer
+                    minimum: 0
+                    maximum: 9007199254740991
+                required:
+                - daily
+                - weekly
+                - monthly
+                - all_time
+                additionalProperties: false
+            required:
+            - kit
+            - rating
+            - wins
+            additionalProperties: false
+          maxItems: 64
+        best:
+          anyOf:
+          - type: object
+            properties:
+              points:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              tier:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              tierName:
+                type: string
+                minLength: 1
+                maxLength: 32
+              division:
+                enum:
+                - III
+                - II
+                - I
+              toNextDivision:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              place:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              wins:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              losses:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              kit:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+            required:
+            - points
+            - tier
+            - tierName
+            - division
+            - toNextDivision
+            - place
+            - wins
+            - losses
+            - kit
+            additionalProperties: false
+          - type: 'null'
+      required:
+      - wins
+      - losses
+      - matches
+      - ranked
+      - unranked
+      - streak
+      - bestStreak
+      - rankedWins
+      - kits
+      - best
+      additionalProperties: false
+    PlayerDuelsStats:
+      type: object
+      properties:
+        uuid: &id003
+          type: string
+        name: *id003
+        duels:
+          $ref: '#/components/schemas/DuelsStats'
+      required:
+      - uuid
+      - name
+      - duels
+    DuelsSummary:
+      type: object
+      properties:
+        arenas:
+          anyOf:
+          - &id004
+            type: integer
+          - type: 'null'
+        capacity:
+          anyOf:
+          - *id004
+          - type: 'null'
+        activeMatches:
+          anyOf:
+          - *id004
+          - type: 'null'
+        playersInMatches:
+          anyOf:
+          - *id004
+          - type: 'null'
+        queued:
+          anyOf:
+          - *id004
+          - type: 'null'
+        matchesLastDay:
+          anyOf:
+          - *id004
+          - type: 'null'
+        matchesLastWeek:
+          anyOf:
+          - *id004
+          - type: 'null'
+        players:
+          anyOf:
+          - *id004
+          - type: 'null'
+        kits:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z0-9_-]{1,64}$
+          maxItems: 64
+      required:
+      - arenas
+      - capacity
+      - activeMatches
+      - playersInMatches
+      - queued
+      - matchesLastDay
+      - matchesLastWeek
+      - players
+      - kits
+      additionalProperties: false
+    DuelsLadder:
+      type: object
+      properties:
+        tiers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[a-z0-9_-]{1,64}$
+              name:
+                type: string
+                minLength: 1
+                maxLength: 32
+              color:
+                type: string
+                pattern: ^#[0-9a-f]{6}$
+              minimumPoints:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+            required:
+            - id
+            - name
+            - color
+            - minimumPoints
+            additionalProperties: false
+          maxItems: 32
+        divisions:
+          type: array
+          items:
+            enum:
+            - III
+            - II
+            - I
+          maxItems: 3
+        divisionPoints:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        winPoints:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        lossPoints:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+      - tiers
+      - divisions
+      - divisionPoints
+      - winPoints
+      - lossPoints
+      additionalProperties: false
+    DuelsKit:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9_-]{1,64}$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        pieces:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        armour:
+          type: string
+          maxLength: 128
+        weapon:
+          type: string
+          maxLength: 128
+        blocks:
+          type: boolean
+        naturalRegeneration:
+          type: boolean
+        boxing:
+          type: boolean
+        waiting:
+          type: object
+          properties:
+            ranked:
+              anyOf:
+              - *id004
+              - type: 'null'
+            unranked:
+              anyOf:
+              - *id004
+              - type: 'null'
+          required:
+          - ranked
+          - unranked
+          additionalProperties: false
+        ratedPlayers:
+          anyOf:
+          - *id004
+          - type: 'null'
+      required:
+      - id
+      - name
+      - pieces
+      - armour
+      - weapon
+      - blocks
+      - naturalRegeneration
+      - boxing
+      - waiting
+      - ratedPlayers
+      additionalProperties: false
+    DuelsMatch:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        kit:
+          type: string
+          pattern: ^[a-z0-9_-]{1,64}$
+        ranked:
+          type: boolean
+        players:
+          type: array
+          items:
+            type: object
+            properties:
+              uuid:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              rounds:
+                type: integer
+                minimum: 0
+                maximum: 9007199254740991
+              remainingHealth:
+                anyOf:
+                - type: number
+                  minimum: 0
+                  maximum: 9007199254740991
+                - type: 'null'
+              name: *id003
+            required:
+            - uuid
+            - rounds
+            - remainingHealth
+            - name
+            additionalProperties: false
+          maxItems: 2
+          minItems: 2
+        winner:
+          anyOf:
+          - type: string
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+          - type: 'null'
+        finish:
+          enum:
+          - death
+          - hits
+          - disconnect
+          - surrender
+          - no_show
+          - timeout
+        startedAt:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+          - type: 'null'
+        endedAt:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$
+        durationMs:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      required:
+      - id
+      - kit
+      - ranked
+      - players
+      - winner
+      - finish
+      - startedAt
+      - endedAt
+      - durationMs
+      additionalProperties: false
+    DuelsKitPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DuelsKit'
+        nextCursor:
+          anyOf:
+          - *id003
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
+    DuelsMatchPage:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DuelsMatch'
+        nextCursor:
+          anyOf:
+          - *id003
+          - type: 'null'
+      required:
+      - rows
+      - nextCursor
+    DuelsLeaderboardIndex:
+      type: object
+      properties:
+        gamemode: *id003
+        kits:
+          type: array
+          items: *id003
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              metric:
+                enum:
+                - wins
+                - rating
+                - current-streak
+                - best-streak
+              periods:
+                type: array
+                items:
+                  enum:
+                  - daily
+                  - weekly
+                  - monthly
+                  - all_time
+              kit:
+                enum:
+                - optional
+                - required
+                - none
+              unit:
+                enum:
+                - wins
+                - points
+              ordering:
+                enum:
+                - descending
+            required:
+            - metric
+            - periods
+            - kit
+            - unit
+            - ordering
+      required:
+      - gamemode
+      - kits
+      - metrics
+    DuelsLeaderboard:
+      type: object
+      properties:
+        gamemode: *id003
+        metric:
+          enum:
+          - wins
+          - rating
+          - current-streak
+          - best-streak
+        period:
+          enum:
+          - daily
+          - weekly
+          - monthly
+          - all_time
+        kit:
+          anyOf:
+          - *id003
+          - type: 'null'
+        rows:
+          type: array
+          items:
+            type: object
+            properties:
+              rank: *id004
+              uuid: *id003
+              name: *id003
+              value: *id004
+              displayValue: *id003
+            required:
+            - rank
+            - uuid
+            - name
+            - value
+            - displayValue
+        nextCursor:
+          anyOf:
+          - *id003
+          - type: 'null'
+        computedAt:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        stale:
+          type: boolean
+      required:
+      - gamemode
+      - metric
+      - period
+      - kit
+      - rows
+      - nextCursor
+      - computedAt
+      - stale

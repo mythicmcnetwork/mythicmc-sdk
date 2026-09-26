@@ -176,7 +176,7 @@ test('aborts an attempt that outlives timeoutMs', async () => {
   await assert.rejects(new MythicMC({ apiKey: 'k', fetch, timeoutMs: 5 }).health(), { name: 'TimeoutError' })
 })
 
-test('requires an API key', () => {
+test('rejects an explicitly empty API key', () => {
   assert.throws(() => new MythicMC({ apiKey: '' }), TypeError)
 })
 
@@ -205,4 +205,32 @@ test('conditional shop reads expose ETags and handle bodyless 304 responses', as
   assert.equal(shop?.items[0]?.buyPrice, null)
   assert.equal(await api.getSurvivalShop(shop!.meta.etag!), null)
   assert.equal(calls[1]?.headers['If-None-Match'], '"abc"')
+})
+
+test('Duels methods encode identifiers, filters and cursors without requiring a key', async () => {
+  const { calls, fetch } = stub(...Array.from({ length: 9 }, () => json({})))
+  const api = new MythicMC({ fetch })
+  await api.getPlayerDuelsStats('a/b')
+  await api.getDuels()
+  await api.getDuelsLadder()
+  await api.listDuelsKits({ limit: 2, cursor: 'a+/=' })
+  await api.getDuelsKit('a/b')
+  await api.listDuelsMatches({ player: 'A B', limit: 2, cursor: 'a+/=' })
+  await api.getDuelsMatch('a/b')
+  await api.listDuelsLeaderboards()
+  await api.getDuelsLeaderboard('rating', 'all_time', { kit: 'a/b', limit: 2, cursor: 'a+/=' })
+  assert.deepEqual(calls.map(call => call.url.replace('https://api.mythicmc.net', '')), [
+    '/v1/players/a%2Fb/stats/duels', '/v1/duels', '/v1/duels/ladder',
+    '/v1/duels/kits?limit=2&cursor=a%2B%2F%3D', '/v1/duels/kits/a%2Fb',
+    '/v1/duels/matches?limit=2&cursor=a%2B%2F%3D&player=A+B', '/v1/duels/matches/a%2Fb',
+    '/v1/gamemodes/duels/leaderboards',
+    '/v1/gamemodes/duels/leaderboards/rating/all_time?limit=2&cursor=a%2B%2F%3D&kit=a%2Fb',
+  ])
+  assert.ok(calls.every(call => call.headers.Authorization === undefined))
+  assert.doesNotThrow(() => new MythicMC())
+})
+
+test('anonymous clients preserve server authentication errors for keyed endpoints', async () => {
+  const { fetch } = stub(json({ error: 'missing or invalid API key' }, 401))
+  await assert.rejects(new MythicMC({ fetch }).getDuels(), AuthenticationError)
 })

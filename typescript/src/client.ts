@@ -1,5 +1,6 @@
 import { AuthenticationError, BadRequestError, MythicMCError, NotFoundError, RateLimitError, UnavailableError } from './errors.ts'
 import type {
+  DuelsLeaderboardIndex, DuelsLadder, DuelsLeaderboard, DuelsMatchPage, PlayerDuelsStats, DuelsMatch, DuelsSummary, DuelsKitPage, DuelsKit, DuelsLeaderboardMetric, DuelsLeaderboardOptions, DuelsMatchOptions,
   Bounty, BountyClaim, BountyClaimPage, BountyPage, EventDetails, EventSchedule, EventSchedulePage, PlayerShopBundles, Stall, StallPage, SurvivalShop, PageOptions,
   Health,
   Leaderboard,
@@ -15,14 +16,14 @@ import type {
   ResponseMeta,
 } from './types.ts'
 
-export const VERSION = '1.1.0'
+export const VERSION = '1.2.0'
 export const DEFAULT_BASE_URL = 'https://api.mythicmc.net'
 
 const MAX_RETRY_WAIT_SECONDS = 60
 
 export interface MythicMCOptions {
-  /** Keep this key server-side. */
-  apiKey: string
+  /** Omit for public leaderboards and health. Keep keys server-side. */
+  apiKey?: string
   /** Defaults to `DEFAULT_BASE_URL`; trailing slashes are ignored. */
   baseUrl?: string
   /** Optional transport override. Defaults to global `fetch`. */
@@ -43,10 +44,11 @@ export class MythicMC {
   readonly #timeoutMs: number
   readonly #maxRetries: number
 
-  constructor(options: MythicMCOptions) {
-    if (!options?.apiKey) throw new TypeError('apiKey is required')
+  constructor(options: MythicMCOptions = {}) {
+    if (options.apiKey !== undefined && !options.apiKey) throw new TypeError('apiKey is required')
     this.#baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '')
-    this.#headers = { Authorization: `Bearer ${options.apiKey}`, Accept: 'application/json' }
+    this.#headers = { Accept: 'application/json' }
+    if (options.apiKey) this.#headers.Authorization = `Bearer ${options.apiKey}`
     if (typeof window === 'undefined') this.#headers['User-Agent'] = `mythicmc-api-ts/${VERSION}`
     this.#fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.#timeoutMs = options.timeoutMs ?? 10000
@@ -73,6 +75,42 @@ export class MythicMC {
 
   getPlayerCrateKeys(id: string): Promise<Reply<PlayerCrateKeys>> {
     return this.#get(`/v1/players/${encodeURIComponent(id)}/crate-keys`)
+  }
+
+  getPlayerDuelsStats(id: string): Promise<Reply<PlayerDuelsStats>> {
+    return this.#get(`/v1/players/${encodeURIComponent(id)}/stats/duels`)
+  }
+
+  getDuels(): Promise<Reply<DuelsSummary>> {
+    return this.#get(`/v1/duels`)
+  }
+
+  getDuelsLadder(): Promise<Reply<DuelsLadder>> {
+    return this.#get(`/v1/duels/ladder`)
+  }
+
+  listDuelsKits(options: PageOptions = {}): Promise<Reply<DuelsKitPage>> {
+    return this.#get(`/v1/duels/kits` + pageQuery(options))
+  }
+
+  getDuelsKit(kit: string): Promise<Reply<DuelsKit>> {
+    return this.#get(`/v1/duels/kits/${encodeURIComponent(kit)}`)
+  }
+
+  listDuelsMatches(options: DuelsMatchOptions = {}): Promise<Reply<DuelsMatchPage>> {
+    return this.#get(`/v1/duels/matches` + pageQuery(options))
+  }
+
+  getDuelsMatch(id: string): Promise<Reply<DuelsMatch>> {
+    return this.#get(`/v1/duels/matches/${encodeURIComponent(id)}`)
+  }
+
+  listDuelsLeaderboards(): Promise<Reply<DuelsLeaderboardIndex>> {
+    return this.#get(`/v1/gamemodes/duels/leaderboards`)
+  }
+
+  getDuelsLeaderboard(metric: DuelsLeaderboardMetric, period: LeaderboardPeriod, options: DuelsLeaderboardOptions = {}): Promise<Reply<DuelsLeaderboard>> {
+    return this.#get(`/v1/gamemodes/duels/leaderboards/${encodeURIComponent(metric)}/${encodeURIComponent(period)}` + pageQuery(options))
   }
 
   listLeaderboards(): Promise<Reply<LeaderboardIndex>> {
@@ -199,9 +237,11 @@ function toError(status: number, message: string): MythicMCError {
   return new MythicMCError(status, message)
 }
 
-function pageQuery(options: PageOptions): string {
+function pageQuery(options: PageOptions & { kit?: string; player?: string }): string {
   const query = new URLSearchParams()
   if (options.limit !== undefined) query.set('limit', String(options.limit))
   if (options.cursor !== undefined) query.set('cursor', options.cursor)
+  if (options.kit !== undefined) query.set('kit', options.kit)
+  if (options.player !== undefined) query.set('player', options.player)
   return query.size ? `?${query}` : ''
 }
