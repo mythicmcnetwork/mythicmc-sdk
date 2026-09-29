@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://mythicmc-sdk-assets.acc500833.workers.dev/logo.png?v=5764cfc9e6aa" alt="MythicMC API SDK" width="640">
+  <img src="https://cdn.mythicmc.net/sdk/logo.png?v=5764cfc9e6aa" alt="MythicMC API SDK" width="640">
 </p>
 
 <p align="center">

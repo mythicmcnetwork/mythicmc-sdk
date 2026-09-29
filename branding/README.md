@@ -1,13 +1,18 @@
 # README logo
 
-The PNG is hosted on Cloudflare, outside GitHub:
+The logo is served by the shared MythicMC CDN:
 
-https://mythicmc-sdk-assets.acc500833.workers.dev/logo.png
+https://cdn.mythicmc.net/sdk/logo.png
 
-To update it, place the PNG at `branding/public/logo.png`, then run from the repository root:
+Place the PNG at `branding/public/logo.png` (Git-ignored), then run from the
+`apps-cdn` checkout:
 
 ```sh
-npx wrangler deploy --config branding/wrangler.jsonc
+npm run sync:assets -- /path/to/mythicmc-sdk/branding/public sdk --dry-run
+npm run sync:assets -- /path/to/mythicmc-sdk/branding/public sdk
 ```
 
-The PNG is Git-ignored. Only the hosting configuration and cache headers are committed. This Worker serves the logo independently of the API and developer portal.
+Only assets are uploaded. Do not deploy a separate Worker for this repository.
+`_headers` is skipped; the upload command sets content type and cache metadata.
+When replacing the logo, change the README's `?v=` value to invalidate downstream
+image caches. Keep the old Worker until the CDN URL and README have been verified.
