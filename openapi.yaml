@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: MythicMC Public API
-  version: 1.2.0
+  version: 2.0.0
   summary: Read-only player, statistics and leaderboard data from the MythicMC network.
-  description: Official SDK endpoints for API 1.2.0. Gameplay data has a five-minute publication delay and privacy
+  description: Official SDK endpoints for API 2.0.0. Gameplay data has a five-minute publication delay and privacy
     filtering. Numeric timestamps are Unix milliseconds; date strings use ISO 8601. Unknown values are null. API
     keys are required except for health and leaderboards. Collections accept limit (1–100, default 25) and cursor;
     follow nextCursor until null. Leaderboards use public, max-age=15, stale-while-revalidate=45 and may be served
@@ -629,7 +629,7 @@ paths:
       tags:
       - Duels
       summary: Get player duels stats
-      description: Overall records, streaks, rolling wins and per-kit ratings. The practice alias is accepted. Returns
+      description: Overall records, streaks, rolling wins and per-kit ratings. Only the duels route is supported. Returns
         404 when no Duels snapshot is published. Requires an API key. Gameplay data is delayed at least five minutes
         and filtered for player privacy.
       responses:
@@ -869,7 +869,7 @@ paths:
       summary: List duels leaderboards
       description: Gameplay data is delayed at least five minutes and filtered for player privacy. No API key required.
         Wins support daily, weekly, monthly and all_time; dated windows roll. Rating and streaks support all_time
-        only. Ratings require kit. The practice gamemode alias is also accepted.
+        only. Ratings require kit. Only the duels gamemode route is supported.
       responses:
         '200':
           description: Published Duels snapshot.
@@ -892,7 +892,7 @@ paths:
       summary: Get duels leaderboard
       description: Gameplay data is delayed at least five minutes and filtered for player privacy. No API key required.
         Wins support daily, weekly, monthly and all_time; dated windows roll. Rating and streaks support all_time
-        only. Ratings require kit. The practice gamemode alias is also accepted.
+        only. Ratings require kit. Only the duels gamemode route is supported.
       responses:
         '200':
           description: Published Duels snapshot.

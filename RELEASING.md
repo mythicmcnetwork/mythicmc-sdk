@@ -1,6 +1,6 @@
 # Releasing the SDKs
 
-Push a stable version tag such as `v1.2.0` to publish both SDKs. GitHub Actions validates the version, runs CI, builds the archives, publishes them to npm and PyPI, then creates the GitHub release with notes and checksums. Both registries authenticate the workflow through OIDC; no registry token is stored in GitHub.
+Push a stable version tag such as `v2.0.0` to publish both SDKs. GitHub Actions validates the version, runs CI, builds the archives, publishes them to npm and PyPI, then creates the GitHub release with notes and checksums. Both registries authenticate the workflow through OIDC; no registry token is stored in GitHub.
 
 ## Prepare a release
 
@@ -10,8 +10,8 @@ Push a stable version tag such as `v1.2.0` to publish both SDKs. GitHub Actions 
 4. Create and push the matching tag, for example:
 
    ```sh
-   git tag -a v1.2.0 -m 'MythicMC SDK 1.2.0'
-   git push origin v1.2.0
+   git tag -a v2.0.0 -m 'MythicMC SDK 2.0.0'
+   git push origin v2.0.0
    ```
 
 Only stable `major.minor.patch` versions are supported. The tag must match every version field, and its commit must be reachable from `main`. Existing published versions cannot be overwritten; use a new version for changes.

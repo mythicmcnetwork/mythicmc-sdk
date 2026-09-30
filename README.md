@@ -95,7 +95,7 @@ The SDK code is [MIT licensed](LICENSE). Access to the API and use of its data a
 
 ## Previous release: API 1.1.0
 
-See [release notes](RELEASE_NOTES.md) for breaking changes and migration instructions.
+See the [1.1.0 changelog](changelog/1.1.0-changelog.md) for that release’s changes.
 
 | Resource | TypeScript | Python (sync and async) |
 | --- | --- | --- |
@@ -113,7 +113,13 @@ See [release notes](RELEASE_NOTES.md) for breaking changes and migration instruc
 
 List methods take pagination options (`{ limit, cursor }` in TypeScript; keyword arguments in Python). Follow `nextCursor` / `next_cursor` until null. IDs are URL-encoded. Shop reads optionally accept an ETag and return null / None on 304; otherwise use `reply.meta.etag` for the next conditional request.
 
-## API 1.2.0 — Duels
+## API 2.0.0: Duels
+
+Upgrade to SDK 2.0.0. The API no longer accepts `practice` as a URL alias:
+replace `/stats/practice` with `/stats/duels` and
+`/gamemodes/practice/leaderboards` with `/gamemodes/duels/leaderboards`, including
+metric and period suffixes. The `/v1` prefix stays unchanged. The SDK's Duels
+method names already use the canonical routes and do not need renaming.
 
 Duels now has typed player stats, summaries, ladder rules, kits, match history
 and leaderboards. Wins support rolling `daily`, `weekly`, `monthly` windows and

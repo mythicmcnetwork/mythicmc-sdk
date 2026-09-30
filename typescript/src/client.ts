@@ -16,7 +16,7 @@ import type {
   ResponseMeta,
 } from './types.ts'
 
-export const VERSION = '1.2.0'
+export const VERSION = '2.0.0'
 export const DEFAULT_BASE_URL = 'https://api.mythicmc.net'
 
 const MAX_RETRY_WAIT_SECONDS = 60

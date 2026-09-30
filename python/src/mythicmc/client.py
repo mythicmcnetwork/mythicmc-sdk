@@ -19,7 +19,7 @@ from .errors import (
     UnavailableError,
 )
 
-__version__ = "1.2.0"
+__version__ = "2.0.0"
 DEFAULT_BASE_URL = "https://api.mythicmc.net"
 
 T = TypeVar("T")
