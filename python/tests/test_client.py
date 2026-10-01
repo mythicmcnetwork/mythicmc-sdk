@@ -131,7 +131,8 @@ class Decoding(unittest.TestCase):
                          {"crateId": "legendary", "keyType": "virtual", "available": None}]}
         _, api = client(httpx.Response(200, json=body))
         with api:
-            keys = api.get_player_crate_keys("Vicente_1313").keys
+            with self.assertWarns(DeprecationWarning):
+                keys = api.get_player_crate_keys("Vicente_1313").keys
         self.assertEqual(keys[0].available, 0)
         self.assertIsNone(keys[1].available)
 
@@ -200,7 +201,8 @@ class Routes(unittest.TestCase):
             api.get_player_stats(".Bedrock")
             api.get_player_progression("n")
             api.get_player_team("n")
-            api.get_player_crate_keys("n")
+            with self.assertWarns(DeprecationWarning):
+                api.get_player_crate_keys("n")
             api.list_leaderboards()
             api.get_leaderboard("networth", "all_time")
             api.health()
@@ -356,7 +358,8 @@ class Async(unittest.IsolatedAsyncioTestCase):
             await api.get_player_stats("n")
             await api.get_player_progression("n")
             await api.get_player_team("n")
-            await api.get_player_crate_keys("n")
+            with self.assertWarns(DeprecationWarning):
+                await api.get_player_crate_keys("n")
             await api.list_leaderboards()
             await api.get_leaderboard("kills", "daily")
             await api.health()

@@ -4,12 +4,12 @@
 
 <p align="center">
   <strong>Official TypeScript and Python SDKs for MythicMC.</strong><br>
-  Player profiles, Survival statistics, progression, teams, crate keys, and leaderboards.
+  Player profiles, Survival statistics, progression, teams, and leaderboards.
 </p>
 
 <p align="center">
   <a href="https://developer.mythicmc.net/">Developer portal</a> ·
-  <a href="https://developer.mythicmc.net/#reference">API reference</a> ·
+  <a href="https://developer.mythicmc.net/docs/reference">API reference</a> ·
   <a href="typescript/README.md">TypeScript</a> ·
   <a href="python/README.md">Python</a> ·
   <a href="openapi.yaml">OpenAPI</a> ·
@@ -71,10 +71,10 @@ Both clients handle authentication, response metadata, typed errors, and rate-li
 | Survival statistics | [Example](typescript/examples/get-player-stats.ts) | [Example](python/examples/get_player_stats.py) |
 | Network progression | [Example](typescript/examples/get-player-progression.ts) | [Example](python/examples/get_player_progression.py) |
 | Teams | [Example](typescript/examples/get-player-team.ts) | [Example](python/examples/get_player_team.py) |
-| Crate keys | [Example](typescript/examples/get-player-crate-keys.ts) | [Example](python/examples/get_player_crate_keys.py) |
+| Crate keys (deprecated, 410 from October 7, 2026) | [Example](typescript/examples/get-player-crate-keys.ts) | [Example](python/examples/get_player_crate_keys.py) |
 | Leaderboards | [Example](typescript/examples/get-leaderboards.ts) | [Example](python/examples/get_leaderboards.py) |
 
-For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers the SDK endpoints. The [full API reference](https://developer.mythicmc.net/#reference) also documents additional player directories, history, network status, and catalogs that can be called directly over HTTP.
+For concurrent Python requests, see [async lookup](python/examples/async_lookup.py). The [OpenAPI 3.1 specification](openapi.yaml) covers the SDK endpoints. The [full API reference](https://developer.mythicmc.net/docs/reference) also documents additional player directories, history, network status, and catalogs that can be called directly over HTTP.
 
 ## Working with the data
 

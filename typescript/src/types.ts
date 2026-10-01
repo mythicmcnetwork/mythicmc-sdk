@@ -124,6 +124,7 @@ export interface PlayerTeam {
   team: TeamSummary | null
 }
 
+/** @deprecated Crates are retired for Crowns. */
 export interface CrateKey {
   crateId: string
   /** @deprecated All keys are virtual; retained for compatibility. */
@@ -132,7 +133,10 @@ export interface CrateKey {
   available: number | null
 }
 
-/** Missing crates have unpublished balances, not zero balances. */
+/**
+ * Missing crates have unpublished balances, not zero balances.
+ * @deprecated Crates are retired for Crowns.
+ */
 export interface PlayerCrateKeys {
   uuid: string
   name: string

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import re
 import time
+import warnings
 from datetime import datetime
 from typing import Any, TypeVar, overload
 from urllib.parse import quote, urlencode
@@ -19,13 +20,17 @@ from .errors import (
     UnavailableError,
 )
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 DEFAULT_BASE_URL = "https://api.mythicmc.net"
 
 T = TypeVar("T")
 
 _ERRORS = {400: BadRequestError, 401: AuthenticationError, 404: NotFoundError, 503: UnavailableError}
 _MAX_RETRY_WAIT = 60.0
+_CRATE_KEYS_DEPRECATED = (
+    "get_player_crate_keys is deprecated: crates are retired for Crowns, "
+    "and the endpoint returns 410 Gone from October 7, 2026 00:00 UTC."
+)
 
 
 def _integer(value: str | None) -> int | None:
@@ -171,6 +176,8 @@ class MythicMC(_Base):
         return self._get(models.PlayerTeam, self._player(id, "/team"))
 
     def get_player_crate_keys(self, id: str) -> models.PlayerCrateKeys:
+        """Deprecated: crates are retired for Crowns. Returns 410 Gone from October 7, 2026 00:00 UTC."""
+        warnings.warn(_CRATE_KEYS_DEPRECATED, DeprecationWarning, stacklevel=2)
         return self._get(models.PlayerCrateKeys, self._player(id, "/crate-keys"))
 
     def get_player_duels_stats(self, id: str) -> models.PlayerDuelsStats:
@@ -302,6 +309,8 @@ class AsyncMythicMC(_Base):
         return await self._get(models.PlayerTeam, self._player(id, "/team"))
 
     async def get_player_crate_keys(self, id: str) -> models.PlayerCrateKeys:
+        """Deprecated: crates are retired for Crowns. Returns 410 Gone from October 7, 2026 00:00 UTC."""
+        warnings.warn(_CRATE_KEYS_DEPRECATED, DeprecationWarning, stacklevel=2)
         return await self._get(models.PlayerCrateKeys, self._player(id, "/crate-keys"))
 
     async def get_player_duels_stats(self, id: str) -> models.PlayerDuelsStats:

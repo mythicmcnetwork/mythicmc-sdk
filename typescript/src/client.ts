@@ -16,7 +16,7 @@ import type {
   ResponseMeta,
 } from './types.ts'
 
-export const VERSION = '2.0.0'
+export const VERSION = '3.0.0'
 export const DEFAULT_BASE_URL = 'https://api.mythicmc.net'
 
 const MAX_RETRY_WAIT_SECONDS = 60
@@ -73,6 +73,9 @@ export class MythicMC {
     return this.#get(`/v1/players/${encodeURIComponent(id)}/team`)
   }
 
+  /**
+   * @deprecated Crates are retired for Crowns. This endpoint returns 410 Gone from October 7, 2026 00:00 UTC.
+   */
   getPlayerCrateKeys(id: string): Promise<Reply<PlayerCrateKeys>> {
     return this.#get(`/v1/players/${encodeURIComponent(id)}/crate-keys`)
   }

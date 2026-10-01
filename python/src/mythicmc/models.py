@@ -228,6 +228,8 @@ class PlayerTeam(_Reply):
 
 @dataclass(frozen=True, slots=True)
 class CrateKey:
+    """Deprecated: crates are retired for Crowns."""
+
     crate_id: str
     key_type: str
     """Deprecated: all keys are virtual; retained for compatibility."""
@@ -237,7 +239,10 @@ class CrateKey:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class PlayerCrateKeys(_Reply):
-    """Missing crates have unpublished balances, not zero balances."""
+    """Missing crates have unpublished balances, not zero balances.
+
+    Deprecated: crates are retired for Crowns.
+    """
 
     uuid: str
     name: str

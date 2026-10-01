@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: MythicMC Public API
-  version: 2.0.0
+  version: 3.0.0
   summary: Read-only player, statistics and leaderboard data from the MythicMC network.
-  description: Official SDK endpoints for API 2.0.0. Gameplay data has a five-minute publication delay and privacy
+  description: Official SDK endpoints for API 3.0.0. Gameplay data has a five-minute publication delay and privacy
     filtering. Numeric timestamps are Unix milliseconds; date strings use ISO 8601. Unknown values are null. API
     keys are required except for health and leaderboards. Collections accept limit (1–100, default 25) and cursor;
     follow nextCursor until null. Leaderboards use public, max-age=15, stale-while-revalidate=45 and may be served
@@ -134,12 +134,15 @@ paths:
   /v1/players/{id}/crate-keys:
     get:
       operationId: getPlayerCrateKeys
+      deprecated: true
       tags:
       - Players
       summary: Get crate key balances
-      description: 'Available crate key balances. Missing crates have unpublished balances, not
+      description: 'Deprecated: crates are retired for Crowns. Returns 410 Gone from October 7,
 
-        zero balances.
+        2026 00:00 UTC. Available crate key balances. Missing crates have unpublished balances,
+
+        not zero balances.
 
         '
       parameters:
