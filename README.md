@@ -91,7 +91,7 @@ For concurrent Python requests, see [async lookup](python/examples/async_lookup.
 
 ## License & API terms
 
-The SDK code is [MIT licensed](LICENSE). Access to the API and use of its data are governed separately by the [MythicMC Terms of Service](https://mythicmc.net/terms), including restrictions on model training, sale, publication, and redistribution of API data.
+The SDK code is [MIT licensed](LICENSE). Access to the API and use of its data are governed separately by the [MythicMC Terms of Service](https://mythicmc.net/terms), including restrictions on model training, selling API data and sharing API keys.
 
 ## Previous release: API 1.1.0
 
