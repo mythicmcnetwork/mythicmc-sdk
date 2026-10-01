@@ -150,11 +150,11 @@ class Decoding(unittest.TestCase):
 
     def test_leaderboard_all_time_has_no_window(self):
         body = {"type": "networth", "period": "all_time", "stale": False,
-                "rows": [{"rank": 1, "uuid": PROFILE["uuid"], "name": "Vicente_1313", "value": "$2.83B"}]}
+                "rows": [{"rank": 1, "uuid": PROFILE["uuid"], "name": "Vicente_1313", "value": "2183269850.41"}]}
         _, api = client(httpx.Response(200, json=body))
         with api:
             board = api.get_leaderboard("networth", "all_time")
-        self.assertEqual(board.rows[0].value, "$2.83B")
+        self.assertEqual(board.rows[0].value, "2183269850.41")
         self.assertIsNone(board.window_start)
         self.assertIsNone(board.window_end)
 

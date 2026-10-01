@@ -17,6 +17,6 @@ print(f"\nkills / weekly, {board.window_start} to {board.window_end}")
 if board.stale:
     print("this board is stale")
 
-# Values are formatted strings. Use player stats for calculations.
+# Values are raw numbers as strings (playtime in minutes). Format them for display.
 for row in board.rows:
     print(f"#{row.rank} {row.name}: {row.value}")

@@ -10,5 +10,5 @@ const board = await api.getLeaderboard('kills', 'weekly')
 console.log(`\nkills / weekly, ${board.windowStart} to ${board.windowEnd}`)
 if (board.stale) console.log('this board is stale')
 
-// Values are formatted strings. Use player stats for calculations.
+// Values are raw numbers as strings (playtime in minutes). Format them for display.
 for (const row of board.rows) console.log(`#${row.rank} ${row.name}: ${row.value}`)

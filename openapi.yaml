@@ -182,9 +182,9 @@ paths:
       tags:
       - Leaderboards
       summary: Get a leaderboard
-      description: 'Up to 15 ranked players for a Survival leaderboard. Values are formatted
+      description: 'Up to 15 ranked players for a Survival leaderboard. Values are raw numbers
 
-        strings, such as `3d 4h` or `$2.83B`.
+        as strings, such as `412` kills or `2183269850.41` net worth; format them for display.
 
         '
       parameters:
@@ -1923,9 +1923,9 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          description: 'Display value, such as `3d 4h` or `$2.83B`. Use player statistics for
+          description: 'Raw number as a string: a count for kills and wins, minutes for playtime,
 
-            numeric calculations.
+            or a decimal amount for networth, such as `2183269850.41`. Not formatted.
 
             '
     Leaderboard:

@@ -261,7 +261,7 @@ class LeaderboardRow:
     name: str
     """Name at capture time; may have changed since."""
     value: str
-    """Formatted value, e.g. 3d 4h or $2.83B."""
+    """Raw number as a string, e.g. "412" or "2183269850.41" (playtime in minutes)."""
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

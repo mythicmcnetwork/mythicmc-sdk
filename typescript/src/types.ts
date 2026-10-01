@@ -154,7 +154,7 @@ export interface LeaderboardRow {
   rank: number
   uuid: string
   name: string
-  /** Formatted value, e.g. 3d 4h or $2.83B. */
+  /** Raw number as a string, e.g. "412" or "2183269850.41" (playtime in minutes). */
   value: string
 }
 
